@@ -16,3 +16,6 @@ build/
 .kanban95/runner.json
 .kanban95/ui.json
 .kanban95/templates/*.replaced.md
+.remember/
+*.stackdump
+scratch/
