@@ -1,0 +1,4 @@
+{
+  "worktree_setup": "cmd /c exit 0",
+  "test": "python check.py"
+}
