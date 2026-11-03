@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DWD brand picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;600&amp;family=Inter:wght@400;500;600&amp;family=Schibsted+Grotesk:wght@400;600;700&amp;family=Source+Sans+3:wght@400;600&amp;family=Source+Serif+4:wght@400;600&amp;display=swap">
+<style>
+:root {
+  --paper: #fafaf8;
+  --paper-2: #ffffff;
+  --ink: #111110;
+  --ink-2: #44403b;
+  --ink-3: #6f6b64;
+  --rule: #e3e1db;
+  --rule-soft: #f1efea;
+  --accent: #7a2e2e;
+  --accent-hover: #5c2020;
+  --accent-soft: #f3e7e4;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, 'Courier New', monospace;
+  --head: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--paper); color: var(--ink); }
+body { margin: 0; font-family: var(--body); font-size: 15px; line-height: 1.5; background: var(--paper); color: var(--ink); }
+h1 { font-family: var(--head); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; font-size: 36px; margin: 8px 0 12px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.eyebrow.inv { color: rgba(255,255,255,0.8); }
+.mark { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 2px; color: #ffffff; font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.04em; flex: none; }
+.mark.sm { width: 14px; height: 14px; font-size: 6px; }
+.mark.lg { width: 40px; height: 40px; font-size: 14px; }
+
+.bar { position: sticky; top: 0; z-index: 10; background: var(--paper-2); border-bottom: 1px solid var(--rule); }
+.bar-in { max-width: 1240px; margin: 0 auto; padding: 10px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.bar-title { font-family: var(--head); font-weight: 600; font-size: 17px; }
+.bar-prog { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.bar-gap { flex: 1; }
+.bar-reset { color: var(--ink-2); font-size: 14px; }
+.bar-reset:hover { color: var(--accent); }
+.btn { font: inherit; font-weight: 500; font-size: 14px; background: var(--accent); color: #ffffff; border: 0; border-radius: 2px; padding: 8px 16px; cursor: pointer; }
+.btn:hover { background: var(--accent-hover); }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 32px 24px 96px; }
+.intro { max-width: 720px; margin-bottom: 32px; }
+.intro p { color: var(--ink-2); margin: 0; }
+.sec { border-top: 1px solid var(--rule); padding: 32px 0; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend, .legend-like { display: block; padding: 0; font-family: var(--head); font-weight: 600; font-size: 22px; letter-spacing: -0.02em; margin-bottom: 4px; }
+.sec-num { font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: 0.08em; color: var(--accent); margin-right: 8px; vertical-align: 3px; }
+.hint { margin: 0 0 16px; color: var(--ink-3); font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+.opt { display: flex; flex-direction: column; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px; cursor: pointer; }
+.opt:hover { border-color: var(--ink-3); }
+.opt:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
+.opt-top { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+.opt-top input { margin: 0; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+.opt-top input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt-name { font-size: 14px; color: var(--ink-2); }
+.opt-name b { font-family: var(--mono); font-weight: 500; color: var(--ink); margin-right: 4px; }
+.opt:has(input:checked) .opt-name { color: var(--ink); }
+.pv { padding: 14px; flex: 1; font-family: var(--body); color: var(--ink); overflow: hidden; }
+.meta { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 8px; }
+
+.pal { margin: -14px; padding: 14px; background: var(--bg); color: var(--ink); height: calc(100% + 28px); }
+.sws { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.sw i { display: block; height: 26px; border: 1px solid rgba(0,0,0,0.12); border-radius: 2px; }
+.sw em { display: block; font-style: normal; font-family: var(--mono); font-size: 9px; line-height: 1.3; color: var(--ink3); margin-top: 3px; }
+.pdoc { background: var(--sf); border: 1px solid var(--rule); border-radius: 2px; padding: 12px; }
+.pdoc-h { font-family: var(--head); font-weight: 600; font-size: 17px; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.01em; }
+.pdoc p { font-size: 12.5px; color: var(--ink2); margin: 0 0 10px; }
+.pdoc-a { color: var(--acc); text-decoration: underline; text-underline-offset: 2px; }
+.pdoc table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.pdoc th { text-align: left; background: var(--soft); color: var(--ink); border-bottom: 2px solid var(--acc); padding: 4px 6px; font-weight: 600; }
+.pdoc td { padding: 4px 6px; color: var(--ink2); border-bottom: 1px solid var(--rule); }
+
+.hf { color: var(--ink); letter-spacing: -0.01em; line-height: 1.15; }
+.hf1 { font-size: 28px; margin-bottom: 10px; }
+.hf2 { font-size: 20px; margin-bottom: 8px; color: var(--ink); }
+.hf3 { font-size: 15px; color: var(--ink-2); }
+.bf { margin: 0; line-height: 1.5; color: var(--ink); }
+
+.ht-p { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
+.ht1, .ht2 { font-family: var(--head); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; color: var(--ink); }
+.ht1 { font-size: 22px; margin: 2px 0 6px; }
+.ht2 { font-size: 16px; margin: 2px 0 4px; }
+.ht .eyebrow { font-size: 9px; }
+.ht1.acc, .ht2.acc { color: var(--accent); }
+.ht1.ruled { border-bottom: 1px solid var(--ink-3); padding-bottom: 6px; margin-bottom: 8px; }
+.htn { color: var(--ink-3); font-weight: 400; margin-right: 8px; font-feature-settings: "tnum"; }
+
+.dens p { margin: 0 0 0.6em; color: var(--ink); }
+.dens p:last-child { margin-bottom: 0; }
+
+.tb { width: 100%; border-collapse: collapse; font-size: 12.5px; font-feature-settings: "tnum"; }
+.tb th { text-align: left; font-weight: 600; }
+.tb td, .tb th { padding: 6px 8px; }
+.tb td:nth-child(n+2), .tb th:nth-child(n+2) { text-align: right; }
+.t-site th { font-family: var(--mono); font-weight: 400; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); border-bottom: 1px solid var(--ink-3); padding-left: 0; }
+.t-site td { border-bottom: 1px solid var(--rule); padding-left: 0; }
+.t-fill th { background: var(--accent); color: #ffffff; }
+.t-fill td { border-bottom: 1px solid var(--rule); }
+.t-heavy th { border-bottom: 2px solid var(--ink); }
+.t-heavy tbody tr:last-child td { border-bottom: 1px solid var(--ink); }
+.t-zebra th { border-bottom: 1px solid var(--ink-3); }
+.t-zebra tbody tr:nth-child(odd) td { background: var(--rule-soft); }
+.t-grid th, .t-grid td { border: 1px solid var(--rule); }
+.t-open th { color: var(--ink-3); font-weight: 500; }
+.t-open td, .t-open th { padding: 10px 12px; }
+
+.pg { position: relative; width: 100%; max-width: 200px; margin: 0 auto; aspect-ratio: 1 / 1.3; background: #ffffff; border: 1px solid var(--rule); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.ln { display: block; height: 4px; background: var(--rule); border-radius: 1px; margin-bottom: 6px; }
+.ln.sh { width: 60%; }
+.gap { display: block; height: 10px; }
+.hf-pg { display: flex; flex-direction: column; padding: 10px 14px; }
+.pg-hd, .pg-ft { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 7px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.pg-hd { border-bottom: 1px solid var(--rule); padding-bottom: 5px; margin-bottom: 10px; }
+.pg-ft { border-top: 1px solid var(--rule); padding-top: 5px; margin-top: auto; }
+.pg-body { flex: 1; padding-top: 6px; }
+.hf-pg .pg-body { padding-bottom: 6px; }
+
+.cv { position: relative; width: 100%; max-width: 200px; margin: 0 auto; aspect-ratio: 1 / 1.3; background: #ffffff; border: 1px solid var(--rule); box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; display: flex; flex-direction: column; }
+.cv-t { font-family: var(--head); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
+.cv-s { font-size: 9px; color: var(--ink-2); }
+.cv-date { position: absolute; left: 16px; bottom: 12px; font-family: var(--mono); font-size: 7px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.cv .eyebrow { font-size: 7px; margin-bottom: 6px; }
+.cv-a .cv-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--accent); }
+.cv-a .cv-in { padding: 34% 16px 0 18px; }
+.cv-a .cv-t { font-size: 20px; margin-bottom: 8px; max-width: 9ch; }
+.cv-a .cv-date { left: 18px; }
+.cv-b { align-items: center; justify-content: center; text-align: center; padding: 16px; }
+.cv-b .mark { margin-bottom: 14px; }
+.cv-b .cv-t { font-size: 17px; margin-bottom: 6px; }
+.cv-b .cv-date { left: 0; right: 0; }
+.cv-c .cv-band { background: var(--accent); padding: 22px 14px 16px; height: 46%; display: flex; flex-direction: column; justify-content: flex-end; }
+.cv-c .cv-t { color: #ffffff; font-size: 17px; }
+.cv-c .cv-s { padding: 10px 14px; }
+.cv-c .cv-date { left: 14px; }
+.cv-d { padding: 14px; justify-content: space-between; }
+.cv-d > .cv-s { font-family: var(--mono); font-size: 7px; letter-spacing: 0.08em; color: var(--ink-3); }
+.cv-d .cv-t { font-size: 24px; margin-bottom: 6px; max-width: 8ch; }
+
+.ctx { font-size: 12.5px; color: var(--ink-2); margin: 0 0 10px; }
+.ctx:last-child { margin: 10px 0 0; }
+.co { font-size: 13px; color: var(--ink); line-height: 1.45; }
+.co-bar { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; }
+.co-tint { background: var(--accent-soft); padding: 10px 12px; border-radius: 2px; }
+.co-box { position: relative; border: 1px solid var(--ink-3); border-radius: 2px; padding: 14px 12px 10px; margin-top: 16px; }
+.co-lab { position: absolute; top: -7px; left: 8px; background: var(--paper-2); padding: 0 4px; font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+.co-quote { font-style: italic; padding-left: 24px; color: var(--ink-2); }
+.co-src { display: block; font-style: normal; font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-top: 4px; }
+
+.ls { margin: 0; padding: 0; list-style: none; font-size: 13.5px; }
+.ls li { position: relative; padding-left: 22px; margin-bottom: 6px; }
+.ls li::before { position: absolute; left: 4px; }
+.ls-sq li::before { content: ""; width: 6px; height: 6px; background: var(--accent); top: 0.55em; }
+.ls-dot li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); top: 0.6em; }
+.ls-dash li::before { content: "-"; color: var(--ink-2); top: 0; }
+.ls-num { counter-reset: n; }
+.ls-num li { counter-increment: n; }
+.ls-num li::before { content: counter(n) "."; left: 0; color: var(--ink-2); font-feature-settings: "tnum"; }
+
+.chs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ch-bars { height: 84px; display: flex; align-items: flex-end; gap: 3px; border-bottom: 1px solid var(--ink-3); }
+.ch-bars i { flex: 1; display: block; }
+.ch-cap { font-family: var(--mono); font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-top: 5px; }
+
+.ps-box { position: absolute; outline: 1px dashed var(--rule); outline-offset: 2px; }
+.ps-two { display: flex; gap: 8%; height: 100%; }
+.ps-main { flex: 2.2; }
+.ps-notes { flex: 1; padding-top: 18px; }
+.ps-notes .ln { background: #c79a94; height: 3px; margin-bottom: 4px; }
+
+.vc { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+
+.notes textarea { display: block; width: 100%; max-width: 900px; font: inherit; font-size: 14px; color: var(--ink); background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px; padding: 10px 12px; margin-bottom: 24px; }
+.notes textarea:focus-visible { border-color: var(--accent); }
+#output { font-family: var(--mono); font-size: 13px; background: var(--rule-soft); }
+.out-lab { font-size: 18px; }
+
+@media (max-width: 600px) {
+  .bar-in { padding: 8px 16px; gap: 10px; }
+  .wrap { padding: 24px 16px 64px; }
+  h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+<div class="bar-in">
+<span class="mark" style="background:#7a2e2e">DW</span>
+<span class="bar-title">DWD brand picker</span>
+<span class="bar-prog" id="progress" aria-live="polite">0 of 13 answered</span>
+<span class="bar-gap"></span>
+<a href="#" class="bar-reset" id="reset">Reset</a>
+<button type="button" class="btn" id="copy">Copy choices</button>
+</div>
+</header>
+<main class="wrap">
+<div class="intro">
+<div class="eyebrow">Data With Dillon</div>
+<h1>Pick the document brand</h1>
+<p>Choose one option in each section by eye. Option A always matches the website. Choices save in this browser as you go. When done, press Copy choices and paste the block into the board notepad.</p>
+</div>
+<form id="picker" autocomplete="off">
+<section class="sec" id="sec-palette">
+<fieldset data-name="palette" data-title="Palette">
+<legend><span class="sec-num">01</span> Palette</legend>
+<p class="hint">Swatches and a small document recoloured with each palette.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="palette" value="A" data-label="A - Oxblood and paper (site)"><span class="opt-name"><b>A</b> Oxblood and paper (site)</span></span><div class="pv"><div class="pal" style="--bg:#fafaf8;--sf:#ffffff;--ink:#111110;--ink2:#44403b;--ink3:#6f6b64;--rule:#e3e1db;--acc:#7a2e2e;--hov:#5c2020;--soft:#f3e7e4"><div class="sws"><span class="sw"><i style="background:#fafaf8"></i><em>paper<br>#fafaf8</em></span><span class="sw"><i style="background:#ffffff"></i><em>surface<br>#ffffff</em></span><span class="sw"><i style="background:#111110"></i><em>ink<br>#111110</em></span><span class="sw"><i style="background:#44403b"></i><em>ink 2<br>#44403b</em></span><span class="sw"><i style="background:#6f6b64"></i><em>ink 3<br>#6f6b64</em></span><span class="sw"><i style="background:#e3e1db"></i><em>rule<br>#e3e1db</em></span><span class="sw"><i style="background:#7a2e2e"></i><em>accent<br>#7a2e2e</em></span><span class="sw"><i style="background:#f3e7e4"></i><em>soft<br>#f3e7e4</em></span></div><div class="pdoc"><div class="pdoc-h">Quarterly review</div><p>Revenue grew 12 percent on last quarter. See the <span class="pdoc-a">full breakdown</span> for each region.</p><table><thead><tr><th>Region</th><th>Q3</th><th>Q4</th></tr></thead><tbody><tr><td>North</td><td>1.2m</td><td>1.4m</td></tr></tbody></table></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="palette" value="B" data-label="B - Navy and slate"><span class="opt-name"><b>B</b> Navy and slate</span></span><div class="pv"><div class="pal" style="--bg:#f6f8fb;--sf:#ffffff;--ink:#0f1b2d;--ink2:#334155;--ink3:#64748b;--rule:#d9e0e8;--acc:#1f3a5f;--hov:#142843;--soft:#e5ecf4"><div class="sws"><span class="sw"><i style="background:#f6f8fb"></i><em>paper<br>#f6f8fb</em></span><span class="sw"><i style="background:#ffffff"></i><em>surface<br>#ffffff</em></span><span class="sw"><i style="background:#0f1b2d"></i><em>ink<br>#0f1b2d</em></span><span class="sw"><i style="background:#334155"></i><em>ink 2<br>#334155</em></span><span class="sw"><i style="background:#64748b"></i><em>ink 3<br>#64748b</em></span><span class="sw"><i style="background:#d9e0e8"></i><em>rule<br>#d9e0e8</em></span><span class="sw"><i style="background:#1f3a5f"></i><em>accent<br>#1f3a5f</em></span><span class="sw"><i style="background:#e5ecf4"></i><em>soft<br>#e5ecf4</em></span></div><div class="pdoc"><div class="pdoc-h">Quarterly review</div><p>Revenue grew 12 percent on last quarter. See the <span class="pdoc-a">full breakdown</span> for each region.</p><table><thead><tr><th>Region</th><th>Q3</th><th>Q4</th></tr></thead><tbody><tr><td>North</td><td>1.2m</td><td>1.4m</td></tr></tbody></table></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="palette" value="C" data-label="C - Charcoal and amber"><span class="opt-name"><b>C</b> Charcoal and amber</span></span><div class="pv"><div class="pal" style="--bg:#f7f5f1;--sf:#ffffff;--ink:#1c1c1c;--ink2:#3d3d3d;--ink3:#6b6b6b;--rule:#e0dcd4;--acc:#a8650a;--hov:#7f4c07;--soft:#f8ecd8"><div class="sws"><span class="sw"><i style="background:#f7f5f1"></i><em>paper<br>#f7f5f1</em></span><span class="sw"><i style="background:#ffffff"></i><em>surface<br>#ffffff</em></span><span class="sw"><i style="background:#1c1c1c"></i><em>ink<br>#1c1c1c</em></span><span class="sw"><i style="background:#3d3d3d"></i><em>ink 2<br>#3d3d3d</em></span><span class="sw"><i style="background:#6b6b6b"></i><em>ink 3<br>#6b6b6b</em></span><span class="sw"><i style="background:#e0dcd4"></i><em>rule<br>#e0dcd4</em></span><span class="sw"><i style="background:#a8650a"></i><em>accent<br>#a8650a</em></span><span class="sw"><i style="background:#f8ecd8"></i><em>soft<br>#f8ecd8</em></span></div><div class="pdoc"><div class="pdoc-h">Quarterly review</div><p>Revenue grew 12 percent on last quarter. See the <span class="pdoc-a">full breakdown</span> for each region.</p><table><thead><tr><th>Region</th><th>Q3</th><th>Q4</th></tr></thead><tbody><tr><td>North</td><td>1.2m</td><td>1.4m</td></tr></tbody></table></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="palette" value="D" data-label="D - Black and white, red signal"><span class="opt-name"><b>D</b> Black and white, red signal</span></span><div class="pv"><div class="pal" style="--bg:#ffffff;--sf:#ffffff;--ink:#000000;--ink2:#222222;--ink3:#555555;--rule:#bdbdbd;--acc:#d62828;--hov:#a51d1d;--soft:#fde7e7"><div class="sws"><span class="sw"><i style="background:#ffffff"></i><em>paper<br>#ffffff</em></span><span class="sw"><i style="background:#ffffff"></i><em>surface<br>#ffffff</em></span><span class="sw"><i style="background:#000000"></i><em>ink<br>#000000</em></span><span class="sw"><i style="background:#222222"></i><em>ink 2<br>#222222</em></span><span class="sw"><i style="background:#555555"></i><em>ink 3<br>#555555</em></span><span class="sw"><i style="background:#bdbdbd"></i><em>rule<br>#bdbdbd</em></span><span class="sw"><i style="background:#d62828"></i><em>accent<br>#d62828</em></span><span class="sw"><i style="background:#fde7e7"></i><em>soft<br>#fde7e7</em></span></div><div class="pdoc"><div class="pdoc-h">Quarterly review</div><p>Revenue grew 12 percent on last quarter. See the <span class="pdoc-a">full breakdown</span> for each region.</p><table><thead><tr><th>Region</th><th>Q3</th><th>Q4</th></tr></thead><tbody><tr><td>North</td><td>1.2m</td><td>1.4m</td></tr></tbody></table></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="palette" value="E" data-label="E - Muted green and sand"><span class="opt-name"><b>E</b> Muted green and sand</span></span><div class="pv"><div class="pal" style="--bg:#f5f1e8;--sf:#fcfaf5;--ink:#1f2a1f;--ink2:#3f4a3c;--ink3:#6e7466;--rule:#dbd3c2;--acc:#3f5e3a;--hov:#2e4529;--soft:#e6ece0"><div class="sws"><span class="sw"><i style="background:#f5f1e8"></i><em>paper<br>#f5f1e8</em></span><span class="sw"><i style="background:#fcfaf5"></i><em>surface<br>#fcfaf5</em></span><span class="sw"><i style="background:#1f2a1f"></i><em>ink<br>#1f2a1f</em></span><span class="sw"><i style="background:#3f4a3c"></i><em>ink 2<br>#3f4a3c</em></span><span class="sw"><i style="background:#6e7466"></i><em>ink 3<br>#6e7466</em></span><span class="sw"><i style="background:#dbd3c2"></i><em>rule<br>#dbd3c2</em></span><span class="sw"><i style="background:#3f5e3a"></i><em>accent<br>#3f5e3a</em></span><span class="sw"><i style="background:#e6ece0"></i><em>soft<br>#e6ece0</em></span></div><div class="pdoc"><div class="pdoc-h">Quarterly review</div><p>Revenue grew 12 percent on last quarter. See the <span class="pdoc-a">full breakdown</span> for each region.</p><table><thead><tr><th>Region</th><th>Q3</th><th>Q4</th></tr></thead><tbody><tr><td>North</td><td>1.2m</td><td>1.4m</td></tr></tbody></table></div></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-heading-font">
+<fieldset data-name="heading-font" data-title="Heading font">
+<legend><span class="sec-num">02</span> Heading font</legend>
+<p class="hint">The same three heading levels in each candidate font.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-font" value="A" data-label="A - Schibsted Grotesk 600 (site)"><span class="opt-name"><b>A</b> Schibsted Grotesk 600 (site)</span></span><div class="pv"><div class="hf" style="font-family:'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif;font-weight:600"><div class="hf1">Annual report 2026</div><div class="hf2">Market overview</div><div class="hf3">Regional detail and outlook</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-font" value="B" data-label="B - Source Serif 4 600"><span class="opt-name"><b>B</b> Source Serif 4 600</span></span><div class="pv"><div class="hf" style="font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;font-weight:600"><div class="hf1">Annual report 2026</div><div class="hf2">Market overview</div><div class="hf3">Regional detail and outlook</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-font" value="C" data-label="C - IBM Plex Sans 600"><span class="opt-name"><b>C</b> IBM Plex Sans 600</span></span><div class="pv"><div class="hf" style="font-family:'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;font-weight:600"><div class="hf1">Annual report 2026</div><div class="hf2">Market overview</div><div class="hf3">Regional detail and outlook</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-font" value="D" data-label="D - DM Sans 700"><span class="opt-name"><b>D</b> DM Sans 700</span></span><div class="pv"><div class="hf" style="font-family:'DM Sans', 'Segoe UI', system-ui, sans-serif;font-weight:700"><div class="hf1">Annual report 2026</div><div class="hf2">Market overview</div><div class="hf3">Regional detail and outlook</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-font" value="E" data-label="E - Georgia bold (office-safe)"><span class="opt-name"><b>E</b> Georgia bold (office-safe)</span></span><div class="pv"><div class="hf" style="font-family:Georgia, 'Times New Roman', serif;font-weight:700"><div class="hf1">Annual report 2026</div><div class="hf2">Market overview</div><div class="hf3">Regional detail and outlook</div></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-body-font">
+<fieldset data-name="body-font" data-title="Body font">
+<legend><span class="sec-num">03</span> Body font</legend>
+<p class="hint">The same paragraph in each candidate, at the size it proposes.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="body-font" value="A" data-label="A - Inter 400 at 16px (site)"><span class="opt-name"><b>A</b> Inter 400 at 16px (site)</span></span><div class="pv"><div class="meta">Inter 400, 16px / 1.5</div><p class="bf" style="font-family:'Inter', 'Segoe UI', system-ui, sans-serif;font-size:16px">Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="body-font" value="B" data-label="B - Source Sans 3 at 16px"><span class="opt-name"><b>B</b> Source Sans 3 at 16px</span></span><div class="pv"><div class="meta">Source Sans 3 400, 16px / 1.5</div><p class="bf" style="font-family:'Source Sans 3', 'Segoe UI', system-ui, sans-serif;font-size:16px">Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="body-font" value="C" data-label="C - IBM Plex Sans at 15px"><span class="opt-name"><b>C</b> IBM Plex Sans at 15px</span></span><div class="pv"><div class="meta">IBM Plex Sans 400, 15px / 1.5</div><p class="bf" style="font-family:'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;font-size:15px">Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="body-font" value="D" data-label="D - DM Sans at 16px"><span class="opt-name"><b>D</b> DM Sans at 16px</span></span><div class="pv"><div class="meta">DM Sans 400, 16px / 1.5</div><p class="bf" style="font-family:'DM Sans', 'Segoe UI', system-ui, sans-serif;font-size:16px">Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="body-font" value="E" data-label="E - Aptos or Calibri at 11pt (office-safe)"><span class="opt-name"><b>E</b> Aptos or Calibri at 11pt (office-safe)</span></span><div class="pv"><div class="meta">Aptos / Calibri 400, 11pt / 1.5</div><p class="bf" style="font-family:Aptos, Calibri, Carlito, 'Segoe UI', sans-serif;font-size:11pt">Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-heading-treatment">
+<fieldset data-name="heading-treatment" data-title="Heading treatment">
+<legend><span class="sec-num">04</span> Heading treatment</legend>
+<p class="hint">How headings stand apart from body text.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-treatment" value="A" data-label="A - Mono eyebrow over heading (site)"><span class="opt-name"><b>A</b> Mono eyebrow over heading (site)</span></span><div class="pv"><div class="ht"><div class="eyebrow">Section 01</div><div class="ht1">Results</div><p class="ht-p">Sales rose in every region except the west.</p><div class="eyebrow">Detail</div><div class="ht2">By region</div><p class="ht-p">Sales rose in every region except the west.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-treatment" value="B" data-label="B - Plain weight contrast"><span class="opt-name"><b>B</b> Plain weight contrast</span></span><div class="pv"><div class="ht"><div class="ht1">Results</div><p class="ht-p">Sales rose in every region except the west.</p><div class="ht2">By region</div><p class="ht-p">Sales rose in every region except the west.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-treatment" value="C" data-label="C - Accent-coloured headings"><span class="opt-name"><b>C</b> Accent-coloured headings</span></span><div class="pv"><div class="ht"><div class="ht1 acc">Results</div><p class="ht-p">Sales rose in every region except the west.</p><div class="ht2 acc">By region</div><p class="ht-p">Sales rose in every region except the west.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-treatment" value="D" data-label="D - Numbered headings (1, 1.1)"><span class="opt-name"><b>D</b> Numbered headings (1, 1.1)</span></span><div class="pv"><div class="ht"><div class="ht1"><span class="htn">1</span>Results</div><p class="ht-p">Sales rose in every region except the west.</p><div class="ht2"><span class="htn">1.1</span>By region</div><p class="ht-p">Sales rose in every region except the west.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="heading-treatment" value="E" data-label="E - Thin rule under H1"><span class="opt-name"><b>E</b> Thin rule under H1</span></span><div class="pv"><div class="ht"><div class="ht1 ruled">Results</div><p class="ht-p">Sales rose in every region except the west.</p><div class="ht2">By region</div><p class="ht-p">Sales rose in every region except the west.</p></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-density">
+<fieldset data-name="density" data-title="Body text density">
+<legend><span class="sec-num">05</span> Body text density</legend>
+<p class="hint">Font size and line height pairs.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="density" value="A" data-label="A - Standard, 16px / 1.5 (site)"><span class="opt-name"><b>A</b> Standard, 16px / 1.5 (site)</span></span><div class="pv"><div class="meta">16px / 1.5</div><div class="dens" style="font-size:16px;line-height:1.5"><p>Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p><p>Support tickets fell by a third over the same period.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="density" value="B" data-label="B - Compact, 14px / 1.35"><span class="opt-name"><b>B</b> Compact, 14px / 1.35</span></span><div class="pv"><div class="meta">14px / 1.35</div><div class="dens" style="font-size:14px;line-height:1.35"><p>Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p><p>Support tickets fell by a third over the same period.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="density" value="C" data-label="C - Airy, 17px / 1.75"><span class="opt-name"><b>C</b> Airy, 17px / 1.75</span></span><div class="pv"><div class="meta">17px / 1.75</div><div class="dens" style="font-size:17px;line-height:1.75"><p>Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p><p>Support tickets fell by a third over the same period.</p></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="density" value="D" data-label="D - Office default, 11pt / 1.15"><span class="opt-name"><b>D</b> Office default, 11pt / 1.15</span></span><div class="pv"><div class="meta">11pt / 1.15</div><div class="dens" style="font-size:11pt;line-height:1.15"><p>Repeat customers drove most of the growth this year. They ordered more often, spent more per order and needed less support, so the margin on each sale rose even as prices held flat.</p><p>Support tickets fell by a third over the same period.</p></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-table">
+<fieldset data-name="table" data-title="Table style">
+<legend><span class="sec-num">06</span> Table style</legend>
+<p class="hint">A real four column table in each style.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="table" value="A" data-label="A - Hairline rules, mono header (site)"><span class="opt-name"><b>A</b> Hairline rules, mono header (site)</span></span><div class="pv"><table class="tb t-site"><thead><tr><th>Region</th><th>Q3</th><th>Q4</th><th>Change</th></tr></thead><tbody><tr><td>North</td><td>1.20m</td><td>1.42m</td><td>+18%</td></tr><tr><td>South</td><td>0.96m</td><td>1.01m</td><td>+5%</td></tr><tr><td>West</td><td>0.88m</td><td>0.81m</td><td>-8%</td></tr></tbody></table></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="table" value="B" data-label="B - Header fill, white text"><span class="opt-name"><b>B</b> Header fill, white text</span></span><div class="pv"><table class="tb t-fill"><thead><tr><th>Region</th><th>Q3</th><th>Q4</th><th>Change</th></tr></thead><tbody><tr><td>North</td><td>1.20m</td><td>1.42m</td><td>+18%</td></tr><tr><td>South</td><td>0.96m</td><td>1.01m</td><td>+5%</td></tr><tr><td>West</td><td>0.88m</td><td>0.81m</td><td>-8%</td></tr></tbody></table></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="table" value="C" data-label="C - Header text, heavy bottom rule"><span class="opt-name"><b>C</b> Header text, heavy bottom rule</span></span><div class="pv"><table class="tb t-heavy"><thead><tr><th>Region</th><th>Q3</th><th>Q4</th><th>Change</th></tr></thead><tbody><tr><td>North</td><td>1.20m</td><td>1.42m</td><td>+18%</td></tr><tr><td>South</td><td>0.96m</td><td>1.01m</td><td>+5%</td></tr><tr><td>West</td><td>0.88m</td><td>0.81m</td><td>-8%</td></tr></tbody></table></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="table" value="D" data-label="D - Zebra banding"><span class="opt-name"><b>D</b> Zebra banding</span></span><div class="pv"><table class="tb t-zebra"><thead><tr><th>Region</th><th>Q3</th><th>Q4</th><th>Change</th></tr></thead><tbody><tr><td>North</td><td>1.20m</td><td>1.42m</td><td>+18%</td></tr><tr><td>South</td><td>0.96m</td><td>1.01m</td><td>+5%</td></tr><tr><td>West</td><td>0.88m</td><td>0.81m</td><td>-8%</td></tr></tbody></table></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="table" value="E" data-label="E - Borderless, generous padding"><span class="opt-name"><b>E</b> Borderless, generous padding</span></span><div class="pv"><table class="tb t-open"><thead><tr><th>Region</th><th>Q3</th><th>Q4</th><th>Change</th></tr></thead><tbody><tr><td>North</td><td>1.20m</td><td>1.42m</td><td>+18%</td></tr><tr><td>South</td><td>0.96m</td><td>1.01m</td><td>+5%</td></tr><tr><td>West</td><td>0.88m</td><td>0.81m</td><td>-8%</td></tr></tbody></table></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-header-footer">
+<fieldset data-name="header-footer" data-title="Header and footer">
+<legend><span class="sec-num">07</span> Header and footer</legend>
+<p class="hint">What runs at the top and bottom of every page.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="header-footer" value="A" data-label="A - Mark left, section right (site)"><span class="opt-name"><b>A</b> Mark left, section right (site)</span></span><div class="pv"><div class="pg hf-pg"><div class="pg-hd"><span class="mark sm" style="background:#7a2e2e">DW</span><span>2 - Methods</span></div><div class="pg-body"><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i></div><div class="pg-ft"><span></span><span>3</span></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="header-footer" value="B" data-label="B - Title left, page number right"><span class="opt-name"><b>B</b> Title left, page number right</span></span><div class="pv"><div class="pg hf-pg"><div class="pg-hd"><span>Annual report 2026</span><span>Page 3</span></div><div class="pg-body"><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="header-footer" value="C" data-label="C - Footer only, with date"><span class="opt-name"><b>C</b> Footer only, with date</span></span><div class="pv"><div class="pg hf-pg"><div class="pg-body"><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i></div><div class="pg-ft"><span>3 November 2026</span><span>3</span></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="header-footer" value="D" data-label="D - None"><span class="opt-name"><b>D</b> None</span></span><div class="pv"><div class="pg hf-pg"><div class="pg-body"><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i></div></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-cover">
+<fieldset data-name="cover" data-title="Cover page">
+<legend><span class="sec-num">08</span> Cover page</legend>
+<p class="hint">First page layouts.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="cover" value="A" data-label="A - Left statement with accent bar (site)"><span class="opt-name"><b>A</b> Left statement with accent bar (site)</span></span><div class="pv"><div class="cv cv-a"><div class="cv-bar"></div><div class="cv-in"><div class="eyebrow">Data With Dillon</div><div class="cv-t">Where the growth came from</div><div class="cv-s">Sales review, 2026</div></div><div class="cv-date">November 2026</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="cover" value="B" data-label="B - Centred title with mark"><span class="opt-name"><b>B</b> Centred title with mark</span></span><div class="pv"><div class="cv cv-b"><span class="mark lg" style="background:#7a2e2e">DW</span><div class="cv-t">Where the growth came from</div><div class="cv-s">Sales review, 2026</div><div class="cv-date">November 2026</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="cover" value="C" data-label="C - Full accent band top"><span class="opt-name"><b>C</b> Full accent band top</span></span><div class="pv"><div class="cv cv-c"><div class="cv-band"><div class="eyebrow inv">Data With Dillon</div><div class="cv-t">Where the growth came from</div></div><div class="cv-s">Sales review, 2026</div><div class="cv-date">November 2026</div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="cover" value="D" data-label="D - Minimal, large title bottom left"><span class="opt-name"><b>D</b> Minimal, large title bottom left</span></span><div class="pv"><div class="cv cv-d"><div class="cv-s">DWD</div><div class="cv-low"><div class="cv-t">Where the growth came from</div><div class="cv-s">November 2026</div></div></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-callout">
+<fieldset data-name="callout" data-title="Callouts and quotes">
+<legend><span class="sec-num">09</span> Callouts and quotes</legend>
+<p class="hint">How a key point or quote is set off from the text.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="callout" value="A" data-label="A - Left accent bar (site)"><span class="opt-name"><b>A</b> Left accent bar (site)</span></span><div class="pv"><p class="ctx">The mix of buyers changed.</p><div class="co co-bar">Repeat customers made up 64 percent of revenue, up from 51 percent.</div><p class="ctx">This shift explains the margin.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="callout" value="B" data-label="B - Tinted panel"><span class="opt-name"><b>B</b> Tinted panel</span></span><div class="pv"><p class="ctx">The mix of buyers changed.</p><div class="co co-tint">Repeat customers made up 64 percent of revenue, up from 51 percent.</div><p class="ctx">This shift explains the margin.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="callout" value="C" data-label="C - Boxed with label"><span class="opt-name"><b>C</b> Boxed with label</span></span><div class="pv"><p class="ctx">The mix of buyers changed.</p><div class="co co-box"><span class="co-lab">Key finding</span>Repeat customers made up 64 percent of revenue, up from 51 percent.</div><p class="ctx">This shift explains the margin.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="callout" value="D" data-label="D - Indented italic quote"><span class="opt-name"><b>D</b> Indented italic quote</span></span><div class="pv"><p class="ctx">The mix of buyers changed.</p><div class="co co-quote">"Repeat customers made up 64 percent of revenue, up from 51 percent."<span class="co-src">Finance team</span></div><p class="ctx">This shift explains the margin.</p></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-lists">
+<fieldset data-name="lists" data-title="Lists and bullets">
+<legend><span class="sec-num">10</span> Lists and bullets</legend>
+<p class="hint">Bullet and number markers.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="lists" value="A" data-label="A - Accent square (matches site mark)"><span class="opt-name"><b>A</b> Accent square (matches site mark)</span></span><div class="pv"><ul class="ls ls-sq"><li>Repeat customers grew fastest</li><li>Support load fell by a third</li><li>Prices held flat all year</li></ul></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="lists" value="B" data-label="B - Dot"><span class="opt-name"><b>B</b> Dot</span></span><div class="pv"><ul class="ls ls-dot"><li>Repeat customers grew fastest</li><li>Support load fell by a third</li><li>Prices held flat all year</li></ul></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="lists" value="C" data-label="C - Dash"><span class="opt-name"><b>C</b> Dash</span></span><div class="pv"><ul class="ls ls-dash"><li>Repeat customers grew fastest</li><li>Support load fell by a third</li><li>Prices held flat all year</li></ul></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="lists" value="D" data-label="D - Numbered with trailing period"><span class="opt-name"><b>D</b> Numbered with trailing period</span></span><div class="pv"><ol class="ls ls-num"><li>Repeat customers grew fastest</li><li>Support load fell by a third</li><li>Prices held flat all year</li></ol></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-chart-palette">
+<fieldset data-name="chart-palette" data-title="Chart palette">
+<legend><span class="sec-num">11</span> Chart palette</legend>
+<p class="hint">Categorical, sequential and diverging bars per palette.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="chart-palette" value="A" data-label="A - Site series, oxblood ramp, oxblood to green"><span class="opt-name"><b>A</b> Site series, oxblood ramp, oxblood to green</span></span><div class="pv"><div class="chs"><div class="ch"><div class="ch-bars"><i style="height:62%;background:#7a2e2e"></i><i style="height:88%;background:#4a4239"></i><i style="height:46%;background:#b8893b"></i><i style="height:74%;background:#4a6b3a"></i><i style="height:96%;background:#5a7a8a"></i><i style="height:54%;background:#5c3a1a"></i></div><div class="ch-cap">Categorical</div></div><div class="ch"><div class="ch-bars"><i style="height:30%;background:#f3e7e4"></i><i style="height:42%;background:#dfbfb8"></i><i style="height:55%;background:#c4928a"></i><i style="height:68%;background:#a6635b"></i><i style="height:82%;background:#7a2e2e"></i><i style="height:96%;background:#5c2020"></i></div><div class="ch-cap">Sequential</div></div><div class="ch"><div class="ch-bars"><i style="height:90%;background:#7a2e2e"></i><i style="height:64%;background:#b07a6e"></i><i style="height:36%;background:#e3d3cc"></i><i style="height:38%;background:#d4ddcb"></i><i style="height:66%;background:#86a274"></i><i style="height:92%;background:#4a6b3a"></i></div><div class="ch-cap">Diverging</div></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="chart-palette" value="B" data-label="B - Navy, blue ramp, navy to orange"><span class="opt-name"><b>B</b> Navy, blue ramp, navy to orange</span></span><div class="pv"><div class="chs"><div class="ch"><div class="ch-bars"><i style="height:62%;background:#1f3a5f"></i><i style="height:88%;background:#5a7a8a"></i><i style="height:46%;background:#c9a227"></i><i style="height:74%;background:#8a3b3b"></i><i style="height:96%;background:#4f7a4f"></i><i style="height:54%;background:#7a6a9a"></i></div><div class="ch-cap">Categorical</div></div><div class="ch"><div class="ch-bars"><i style="height:30%;background:#e5ecf4"></i><i style="height:42%;background:#bccbdd"></i><i style="height:55%;background:#8ea6c3"></i><i style="height:68%;background:#5f80a6"></i><i style="height:82%;background:#3a5c84"></i><i style="height:96%;background:#1f3a5f"></i></div><div class="ch-cap">Sequential</div></div><div class="ch"><div class="ch-bars"><i style="height:90%;background:#1f3a5f"></i><i style="height:64%;background:#5f80a6"></i><i style="height:36%;background:#c3d1e1"></i><i style="height:38%;background:#f2d3b8"></i><i style="height:66%;background:#df935a"></i><i style="height:92%;background:#b35a1f"></i></div><div class="ch-cap">Diverging</div></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="chart-palette" value="C" data-label="C - Charcoal and amber, amber ramp, charcoal to amber"><span class="opt-name"><b>C</b> Charcoal and amber, amber ramp, charcoal to amber</span></span><div class="pv"><div class="chs"><div class="ch"><div class="ch-bars"><i style="height:62%;background:#2b2b2b"></i><i style="height:88%;background:#c27c0e"></i><i style="height:46%;background:#7a7a7a"></i><i style="height:74%;background:#e0a84a"></i><i style="height:96%;background:#8c5a1a"></i><i style="height:54%;background:#b5b5b5"></i></div><div class="ch-cap">Categorical</div></div><div class="ch"><div class="ch-bars"><i style="height:30%;background:#fbf0dc"></i><i style="height:42%;background:#f2d39c"></i><i style="height:55%;background:#e6b35e"></i><i style="height:68%;background:#c98a1f"></i><i style="height:82%;background:#a8650a"></i><i style="height:96%;background:#6e4206"></i></div><div class="ch-cap">Sequential</div></div><div class="ch"><div class="ch-bars"><i style="height:90%;background:#2b2b2b"></i><i style="height:64%;background:#6b6b6b"></i><i style="height:36%;background:#c9c9c9"></i><i style="height:38%;background:#f2d8a8"></i><i style="height:66%;background:#d99a33"></i><i style="height:92%;background:#a8650a"></i></div><div class="ch-cap">Diverging</div></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="chart-palette" value="D" data-label="D - Greys with one red, grey ramp, grey to red"><span class="opt-name"><b>D</b> Greys with one red, grey ramp, grey to red</span></span><div class="pv"><div class="chs"><div class="ch"><div class="ch-bars"><i style="height:62%;background:#d62828"></i><i style="height:88%;background:#000000"></i><i style="height:46%;background:#4d4d4d"></i><i style="height:74%;background:#808080"></i><i style="height:96%;background:#b3b3b3"></i><i style="height:54%;background:#d9d9d9"></i></div><div class="ch-cap">Categorical</div></div><div class="ch"><div class="ch-bars"><i style="height:30%;background:#ededed"></i><i style="height:42%;background:#c8c8c8"></i><i style="height:55%;background:#9e9e9e"></i><i style="height:68%;background:#707070"></i><i style="height:82%;background:#404040"></i><i style="height:96%;background:#111111"></i></div><div class="ch-cap">Sequential</div></div><div class="ch"><div class="ch-bars"><i style="height:90%;background:#111111"></i><i style="height:64%;background:#666666"></i><i style="height:36%;background:#cfcfcf"></i><i style="height:38%;background:#f5c4c4"></i><i style="height:66%;background:#e46a6a"></i><i style="height:92%;background:#d62828"></i></div><div class="ch-cap">Diverging</div></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="chart-palette" value="E" data-label="E - Green and sand, green ramp, green to clay"><span class="opt-name"><b>E</b> Green and sand, green ramp, green to clay</span></span><div class="pv"><div class="chs"><div class="ch"><div class="ch-bars"><i style="height:62%;background:#3f5e3a"></i><i style="height:88%;background:#b9a77a"></i><i style="height:46%;background:#6e8b5e"></i><i style="height:74%;background:#8a6a3a"></i><i style="height:96%;background:#a3b48a"></i><i style="height:54%;background:#5a4a2a"></i></div><div class="ch-cap">Categorical</div></div><div class="ch"><div class="ch-bars"><i style="height:30%;background:#e6ece0"></i><i style="height:42%;background:#c6d4b9"></i><i style="height:55%;background:#a0b78f"></i><i style="height:68%;background:#779866"></i><i style="height:82%;background:#557848"></i><i style="height:96%;background:#3f5e3a"></i></div><div class="ch-cap">Sequential</div></div><div class="ch"><div class="ch-bars"><i style="height:90%;background:#3f5e3a"></i><i style="height:64%;background:#7f9c70"></i><i style="height:36%;background:#d3dec8"></i><i style="height:38%;background:#eadcc4"></i><i style="height:66%;background:#c69b6a"></i><i style="height:92%;background:#9a6a3a"></i></div><div class="ch-cap">Diverging</div></div></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-page-setup">
+<fieldset data-name="page-setup" data-title="Page setup">
+<legend><span class="sec-num">12</span> Page setup</legend>
+<p class="hint">Margins and columns on a portrait page.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="page-setup" value="A" data-label="A - Normal, 2.54 cm margins"><span class="opt-name"><b>A</b> Normal, 2.54 cm margins</span></span><div class="pv"><div class="pg ps"><div class="ps-box" style="left:12%;right:12%;top:12%;bottom:12%"><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="page-setup" value="B" data-label="B - Narrow, 1.27 cm margins"><span class="opt-name"><b>B</b> Narrow, 1.27 cm margins</span></span><div class="pv"><div class="pg ps"><div class="ps-box" style="left:6%;right:6%;top:6%;bottom:6%"><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="page-setup" value="C" data-label="C - Wide, 5.08 cm side margins"><span class="opt-name"><b>C</b> Wide, 5.08 cm side margins</span></span><div class="pv"><div class="pg ps"><div class="ps-box" style="left:24%;right:24%;top:12%;bottom:12%"><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i></div></div></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="page-setup" value="D" data-label="D - Two-column with side notes"><span class="opt-name"><b>D</b> Two-column with side notes</span></span><div class="pv"><div class="pg ps"><div class="ps-box" style="left:9%;right:9%;top:12%;bottom:12%"><div class="ps-two"><div class="ps-main"><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i></div><div class="ps-notes"><i class="ln"></i><i class="ln sh"></i><i class="ln"></i><i class="ln sh"></i><i class="gap"></i><i class="ln"></i><i class="ln"></i><i class="ln sh"></i></div></div></div></div></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-voice">
+<fieldset data-name="voice" data-title="Voice and tone">
+<legend><span class="sec-num">13</span> Voice and tone</legend>
+<p class="hint">How the writing sounds.</p>
+<div class="grid">
+<label class="opt"><span class="opt-top"><input type="radio" name="voice" value="A" data-label="A - Plain, first person (site)"><span class="opt-name"><b>A</b> Plain, first person (site)</span></span><div class="pv"><p class="vc">I looked at twelve months of sales and found that repeat customers drive most of the growth.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="voice" value="B" data-label="B - Neutral, third person"><span class="opt-name"><b>B</b> Neutral, third person</span></span><div class="pv"><p class="vc">Twelve months of sales data show that repeat customers drive most of the growth.</p></div></label>
+<label class="opt"><span class="opt-top"><input type="radio" name="voice" value="C" data-label="C - Formal corporate"><span class="opt-name"><b>C</b> Formal corporate</span></span><div class="pv"><p class="vc">Data With Dillon has completed a comprehensive review of twelve months of sales data, which indicates that repeat customers are the principal driver of growth.</p></div></label>
+</div>
+</fieldset>
+</section>
+<section class="sec" id="sec-notes">
+<div class="notes">
+<label for="notes" class="legend-like"><span class="sec-num">14</span> Notes</label>
+<p class="hint">Anything the options did not cover, or a mix you want (for example: palette B but with the site accent).</p>
+<textarea id="notes" rows="5"></textarea>
+<label for="output" class="legend-like out-lab">Copied text</label>
+<p class="hint" id="copy-status">Press Copy choices to fill this box. If the clipboard is blocked, select the text here and copy it by hand.</p>
+<textarea id="output" rows="16" readonly></textarea>
+</div>
+</section>
+</form>
+</main>
+<script>
+(function () {
+  var KEY = "dwd-brand-picker-v1";
+  var sets = Array.prototype.slice.call(document.querySelectorAll("#picker fieldset[data-name]"));
+  var notes = document.getElementById("notes");
+  var output = document.getElementById("output");
+  var status = document.getElementById("copy-status");
+  var progress = document.getElementById("progress");
+
+  function load() {
+    try {
+      var raw = window.localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function save() {
+    var state = { choices: {}, notes: notes.value };
+    sets.forEach(function (fs) {
+      var on = fs.querySelector("input[type=radio]:checked");
+      if (on) state.choices[fs.dataset.name] = on.value;
+    });
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  function count() {
+    var n = sets.filter(function (fs) {
+      return fs.querySelector("input[type=radio]:checked");
+    }).length;
+    progress.textContent = n + " of " + sets.length + " answered";
+  }
+
+  function buildText() {
+    var lines = sets.map(function (fs) {
+      var on = fs.querySelector("input[type=radio]:checked");
+      return fs.dataset.title + ": " + (on ? on.dataset.label : "(not chosen)");
+    });
+    lines.push("notes: " + (notes.value.trim().replace(/\s*\n\s*/g, " / ") || "(none)"));
+    return lines.join("\n");
+  }
+
+  function copy() {
+    var text = buildText();
+    output.value = text;
+    function manual() {
+      output.focus();
+      output.select();
+      status.textContent = "Clipboard blocked. The text is selected below: press Ctrl+C to copy it.";
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          status.textContent = "Copied to the clipboard. Paste it into the board notepad.";
+        }, manual);
+      } else {
+        manual();
+      }
+    } catch (e) {
+      manual();
+    }
+    output.scrollIntoView({ block: "center" });
+  }
+
+  function reset(ev) {
+    ev.preventDefault();
+    try {
+      window.localStorage.removeItem(KEY);
+    } catch (e) {}
+    document.querySelectorAll("#picker input[type=radio]").forEach(function (r) {
+      r.checked = false;
+    });
+    notes.value = "";
+    output.value = "";
+    status.textContent = "Cleared. Press Copy choices to fill this box.";
+    count();
+  }
+
+  var state = load();
+  if (state) {
+    sets.forEach(function (fs) {
+      var v = state.choices && state.choices[fs.dataset.name];
+      if (!v) return;
+      var r = fs.querySelector('input[type=radio][value="' + v + '"]');
+      if (r) r.checked = true;
+    });
+    if (typeof state.notes === "string") notes.value = state.notes;
+  }
+
+  document.getElementById("picker").addEventListener("change", function () {
+    save();
+    count();
+  });
+  document.getElementById("picker").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+  });
+  notes.addEventListener("input", save);
+  document.getElementById("copy").addEventListener("click", copy);
+  document.getElementById("reset").addEventListener("click", reset);
+  window.dwdBuildChoices = buildText;
+  count();
+
+  document.body.setAttribute("data-sections", String(sets.length));
+  document.body.setAttribute("data-ready", "1");
+})();
+</script>
+</body>
+</html>
