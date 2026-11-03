@@ -1,10 +1,8 @@
-import copy
 import io
 import re
 import subprocess
 import sys
 import zipfile
-from datetime import datetime
 from pathlib import Path
 
 try:
@@ -14,16 +12,28 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "python-pptx", "XlsxWriter"])
     import pptx
 
+try:
+    import matplotlib
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "matplotlib"])
+    import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+
 from lxml import etree
 from pptx.chart.data import CategoryChartData
-from pptx.dml.color import RGBColor
-from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
-from pptx.util import Emu, Pt
+from pptx.util import Emu
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from dwd_pptx import (NS, PALETTES, SLIDE_NUM_TEXT, TABLE_STYLE_ID, add_callout, add_chart, add_hf, add_image,
+                      add_table, layout_named, set_core, set_lines)
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -42,9 +52,8 @@ ACCENT = "7A2E2E"
 ACCENT_HOVER = "5C2020"
 PAPER = "FAFAF8"
 WHITE = "FFFFFF"
-CHART = ["7A2E2E", "4A4239", "B8893B", "4A6B3A", "5A7A8A", "5C3A1A"]
-
-TABLE_STYLE_ID = "{7A2E2E00-D0D0-4D0D-8000-000000000001}"
+CHART = PALETTES["categorical"]
+SEQUENTIAL = PALETTES["sequential"]
 
 SLIDE_W = 12192000
 SLIDE_H = 6858000
@@ -53,18 +62,14 @@ LEFT = int(0.6 * IN)
 TEXT_W = SLIDE_W - 2 * LEFT
 BAR_W = int(0.08 * IN)
 
-FIXED_DATE = datetime(2026, 1, 1, 0, 0, 0)
 ZIP_DATE = (2026, 1, 1, 0, 0, 0)
 
-NS = ('xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
-      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
-      'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"')
 A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
 
 SQUARE = chr(0x25AA)
 DASH = chr(0x2013)
 
-LAYOUTS = ["Title", "Section", "Title and Content", "Two Content", "Chart", "Closing"]
+LAYOUTS = ["Title", "Section", "Title and Content", "Two Content", "Chart", "Closing", "Picture"]
 
 
 def inch(v):
@@ -184,7 +189,6 @@ NUM_W = inch(1.5)
 FOOT_SIZE = 9
 FOOT_LST = plain_levels(FOOT_SIZE, INK3, MONO_FONT, caps=True, spc=mono_spc(FOOT_SIZE))
 FOOT_NUM_LST = plain_levels(FOOT_SIZE, INK3, MONO_FONT, algn="r", caps=True, spc=mono_spc(FOOT_SIZE))
-SLIDE_NUM_TEXT = '<a:p><a:fld id="{B6F15528-21DE-4FAA-801E-634DDDAF4B2B}" type="slidenum"><a:rPr lang="en-US"/><a:t>&lt;#&gt;</a:t></a:fld></a:p>'
 
 TITLE_BOX = (LEFT, inch(0.45), TEXT_W, inch(0.9))
 BODY_BOX = (LEFT, inch(1.6), TEXT_W, inch(4.95))
@@ -272,6 +276,11 @@ def layouts():
         ph(3, "Chart", 'type="chart" idx="13"', (LEFT, BODY_BOX[1], TEXT_W, inch(4.45))),
         ph(4, "Caption", 'type="body" sz="quarter" idx="14"', (LEFT, inch(6.2), TEXT_W, inch(0.35)), lst=cap_lst, anchor="ctr", text="Figure 1. Caption"),
     ] + footer_phs()
+    picture = [
+        ph(2, "Title", 'type="title"', TITLE_BOX, anchor="b", text="Slide title"),
+        ph(3, "Picture", 'type="pic" idx="13"', (LEFT, BODY_BOX[1], TEXT_W, inch(4.45))),
+        ph(4, "Caption", 'type="body" sz="quarter" idx="14"', (LEFT, inch(6.2), TEXT_W, inch(0.35)), lst=cap_lst, anchor="ctr", text="Figure 1. Caption"),
+    ] + footer_phs()
     closing = [
         accent_bar(2),
         eyebrow(3, inch(2.1)),
@@ -285,6 +294,7 @@ def layouts():
         layout_xml("Two Content", "twoObj", two),
         layout_xml("Chart", "chart", chart),
         layout_xml("Closing", None, closing, show_master=False),
+        layout_xml("Picture", "picTx", picture),
     ]
 
 
@@ -327,17 +337,6 @@ def table_styles_blob():
             '<a:firstRow><a:tcTxStyle b="on"><a:fontRef idx="minor"><a:prstClr val="black"/></a:fontRef><a:schemeClr val="bg1"/></a:tcTxStyle>'
             f'<a:tcStyle><a:tcBdr><a:bottom>{none}</a:bottom></a:tcBdr><a:fill>{fill("accent1")}</a:fill></a:tcStyle></a:firstRow>'
             '</a:tblStyle></a:tblStyleLst>').encode("utf-8")
-
-
-def set_core(prs, title):
-    core = prs.core_properties
-    core.author = "Data With Dillon"
-    core.last_modified_by = "Data With Dillon"
-    core.title = title
-    core.created = FIXED_DATE
-    core.modified = FIXED_DATE
-    core.last_printed = FIXED_DATE
-    core.revision = 1
 
 
 def stable_xlsx(data):
@@ -391,90 +390,31 @@ def build_template():
     save_stable(prs, TEMPLATE)
 
 
-def layout_named(prs, name):
-    return next(l for l in prs.slide_layouts if l.name == name)
-
-
-def add_hf(slide, types, values):
-    layout = slide.slide_layout
-    tree_el = slide.shapes._spTree
-    for shape in layout.placeholders:
-        ph_el = shape._element.ph
-        if ph_el is None or ph_el.get("type") not in types:
-            continue
-        el = copy.deepcopy(shape._element)
-        sppr = el.find(qn("p:spPr"))
-        for child in list(sppr):
-            sppr.remove(child)
-        txb = el.find(qn("p:txBody"))
-        lst = txb.find(qn("a:lstStyle"))
-        for child in list(lst):
-            lst.remove(child)
-        for p in txb.findall(qn("a:p")):
-            txb.remove(p)
-        kind = ph_el.get("type")
-        if kind == "sldNum":
-            num = len(slide.part.package.presentation_part.presentation.slides._sldIdLst)
-            txb.append(parse_xml(SLIDE_NUM_TEXT.replace("&lt;#&gt;", str(num)).replace("<a:p>", f'<a:p {NS}>', 1)))
-        else:
-            txb.append(parse_xml(f'<a:p {NS}><a:r><a:rPr lang="en-US"/><a:t>{values[kind]}</a:t></a:r></a:p>'))
-        el.find(qn("p:nvSpPr")).find(qn("p:cNvPr")).set("id", str(100 + len(tree_el)))
-        tree_el.append(el)
-
-
-def set_lines(frame, lines):
-    frame.text = ""
-    first = True
-    for level, text in lines:
-        para = frame.paragraphs[0] if first else frame.add_paragraph()
-        first = False
-        para.text = text
-        para.level = level
-
-
-def add_table(slide, placeholder, rows):
-    x, y, w = placeholder.left, placeholder.top, placeholder.width
-    placeholder._element.getparent().remove(placeholder._element)
-    shape = slide.shapes.add_table(len(rows), len(rows[0]), x, y, w, Emu(inch(0.5) * len(rows)))
-    tbl_pr = shape.table._tbl.tblPr
-    tbl_pr.set("firstRow", "1")
-    tbl_pr.set("bandRow", "0")
-    tbl_pr.find(qn("a:tableStyleId")).text = TABLE_STYLE_ID
-    table = shape.table
-    for r, row in enumerate(rows):
-        for c, value in enumerate(row):
-            cell = table.cell(r, c)
-            cell.text = value
-            cell.margin_left = cell.margin_right = Emu(inch(8 / 96))
-            cell.margin_top = cell.margin_bottom = Emu(inch(6 / 96))
-            para = cell.text_frame.paragraphs[0]
-            para.alignment = PP_ALIGN.RIGHT if r > 0 and c > 0 else PP_ALIGN.LEFT
-            for run in para.runs:
-                run.font.size = Pt(16)
-    return table
-
-
-def style_chart(chart):
-    chart.font.size = Pt(12)
-    chart.font.color.rgb = RGBColor.from_string(INK2)
-    for i, series in enumerate(chart.plots[0].series):
-        series.format.fill.solid()
-        series.format.fill.fore_color.rgb = RGBColor.from_string(CHART[i % len(CHART)])
-        series.format.line.fill.background()
-    chart.plots[0].gap_width = 80
-    chart.plots[0].overlap = 0
-    cat = chart.category_axis
-    cat.format.line.color.rgb = RGBColor.from_string(INK3)
-    cat.format.line.width = Emu(9525)
-    val = chart.value_axis
-    val.format.line.fill.background()
-    val.has_major_gridlines = True
-    val.major_gridlines.format.line.color.rgb = RGBColor.from_string(RULE)
-    val.major_gridlines.format.line.width = Emu(9525)
-    chart.has_legend = True
-    chart.legend.position = XL_LEGEND_POSITION.BOTTOM
-    chart.legend.include_in_layout = False
-    chart.has_title = False
+def heatmap_png():
+    grey = "#" + INK3.lower()
+    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    hours = [f"{h}:00" for h in range(8, 20)]
+    base = [3, 5, 8, 10, 12, 11, 9, 8, 9, 11, 12, 10]
+    lift = [8, 8, 9, 9, 10, 13, 12]
+    grid = [[b * f for b in base] for f in lift]
+    cmap = LinearSegmentedColormap.from_list("dwd", ["#" + c.lower() for c in SEQUENTIAL])
+    fig, ax = plt.subplots(figsize=(10, 4.45), dpi=200)
+    fig.patch.set_alpha(0)
+    image = ax.imshow(grid, cmap=cmap, aspect="auto")
+    ax.set_xticks(range(len(hours)), hours)
+    ax.set_yticks(range(len(days)), days)
+    ax.tick_params(colors=grey, labelsize=12, length=0)
+    for side in ax.spines.values():
+        side.set_visible(False)
+    bar = fig.colorbar(image, ax=ax, fraction=0.03, pad=0.02)
+    bar.outline.set_visible(False)
+    bar.ax.tick_params(colors=grey, labelsize=12, length=0)
+    fig.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=200, transparent=True, metadata={"Software": None})
+    plt.close(fig)
+    buf.seek(0)
+    return buf
 
 
 def build_sample():
@@ -502,6 +442,11 @@ def build_sample():
     ])
     add_hf(s, {"ftr", "sldNum"}, foot)
 
+    s = prs.slides.add_slide(layout_named(prs, "Title and Content"))
+    s.shapes.title.text = "The main finding"
+    add_callout(s, s.placeholders[1], "Repeat customers placed 47% of Q4 orders, up from 38% in Q1.")
+    add_hf(s, {"ftr", "sldNum"}, foot)
+
     s = prs.slides.add_slide(layout_named(prs, "Two Content"))
     s.shapes.title.text = "Key numbers"
     add_table(s, s.placeholders[1], [
@@ -517,6 +462,20 @@ def build_sample():
     ])
     add_hf(s, {"ftr", "sldNum"}, foot)
 
+    s = prs.slides.add_slide(layout_named(prs, "Two Content"))
+    s.shapes.title.text = "Orders by channel"
+    add_table(s, s.placeholders[1], [
+        ["Channel", "Lead offer", "Q4 orders"],
+        ["Email", "Reminder at 30 days", "620"],
+        ["Search", "Free shipping", "540"],
+        ["Social", "Returns window", "450"],
+    ], numeric_cols=[2])
+    set_lines(s.placeholders[2].text_frame, [
+        (0, "Email reminders brought the most orders"),
+        (0, "Search and social follow close behind"),
+    ])
+    add_hf(s, {"ftr", "sldNum"}, foot)
+
     s = prs.slides.add_slide(layout_named(prs, "Chart"))
     s.shapes.title.text = "Orders by quarter"
     data = CategoryChartData()
@@ -524,9 +483,15 @@ def build_sample():
     data.add_series("New", (769, 780, 812, 853))
     data.add_series("Repeat", (471, 560, 640, 757))
     data.add_series("Returned", (62, 58, 51, 44))
-    frame = s.placeholders[13].insert_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, data)
-    style_chart(frame.chart)
-    s.placeholders[14].text = "Figure 1. Orders by customer type and quarter"
+    caption = "Figure 1. Orders by customer type and quarter"
+    frame = add_chart(s.placeholders[13], XL_CHART_TYPE.COLUMN_CLUSTERED, data)
+    frame._element.nvGraphicFramePr.cNvPr.set("descr", caption)
+    s.placeholders[14].text = caption
+    add_hf(s, {"ftr", "sldNum"}, foot)
+
+    s = prs.slides.add_slide(layout_named(prs, "Picture"))
+    s.shapes.title.text = "When orders come in"
+    add_image(s, heatmap_png(), "Figure 2. Orders by weekday and hour")
     add_hf(s, {"ftr", "sldNum"}, foot)
 
     s = prs.slides.add_slide(layout_named(prs, "Closing"))

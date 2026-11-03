@@ -10,3 +10,4 @@ build/
 .remember/
 *.stackdump
 scratch/
+__pycache__/
