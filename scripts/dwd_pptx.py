@@ -85,7 +85,11 @@ def add_hf(slide, types, values):
         tree_el.append(el)
 
 
-def set_lines(frame, lines):
+NUMBERED_PPR = (f'<a:pPr {NS}><a:buClr><a:srgbClr val="{ACCENT}"/></a:buClr>'
+                '<a:buSzPct val="100000"/><a:buFont typeface="+mn-lt"/><a:buAutoNum type="arabicPeriod"/></a:pPr>')
+
+
+def set_lines(frame, lines, numbered=False):
     frame.text = ""
     first = True
     for level, text in lines:
@@ -93,6 +97,11 @@ def set_lines(frame, lines):
         first = False
         para.text = text
         para.level = level
+        if numbered and level == 0:
+            ppr = para._p.get_or_add_pPr()
+            ppr.extend(list(parse_xml(NUMBERED_PPR)))
+            ppr.set("marL", "285750")
+            ppr.set("indent", "-285750")
 
 
 def add_table(slide, placeholder, rows, numeric_cols=None):

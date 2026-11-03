@@ -25,6 +25,9 @@ from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls, qn
 from docx.shared import Inches
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check_docx import TITLE_RIGHT_IND
+
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 TEMPLATE = ASSETS / "dwd-template.docx"
@@ -153,7 +156,7 @@ def build_styles(doc):
                   + rpr(HEAD_FONT, size, ACCENT, bold=True, spacing=spacing),
                   nxt="Normal", ui=9)
     put_style(styles_el, "paragraph", "Title", "Title",
-              ppr(before=0, after=240, line=252, ind={"right": 4600})
+              ppr(before=0, after=240, line=252, ind={"right": TITLE_RIGHT_IND})
               + rpr(HEAD_FONT, 44, INK, bold=True, spacing=-18),
               nxt="Subtitle", ui=10)
     put_style(styles_el, "paragraph", "Subtitle", "Subtitle",

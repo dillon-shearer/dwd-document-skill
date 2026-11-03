@@ -443,6 +443,16 @@ def build_sample():
     add_hf(s, {"ftr", "sldNum"}, foot)
 
     s = prs.slides.add_slide(layout_named(prs, "Title and Content"))
+    s.shapes.title.text = "Next steps"
+    set_lines(s.placeholders[1].text_frame, [
+        (0, "Extend email reminders to lapsed buyers"),
+        (1, "Start with buyers idle for 90 days"),
+        (0, "Test free shipping at $60"),
+        (0, "Review the returns window in Q2"),
+    ], numbered=True)
+    add_hf(s, {"ftr", "sldNum"}, foot)
+
+    s = prs.slides.add_slide(layout_named(prs, "Title and Content"))
     s.shapes.title.text = "The main finding"
     add_callout(s, s.placeholders[1], "Repeat customers placed 47% of Q4 orders, up from 38% in Q1.")
     add_hf(s, {"ftr", "sldNum"}, foot)

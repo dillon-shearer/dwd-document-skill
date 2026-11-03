@@ -22,6 +22,9 @@ H1_RE = re.compile(r"^\d+ - \S")
 NUMBER_RE = re.compile(r"^[+-]?\$?[+-]?\d[\d,]*(\.\d+)?\s?(%|pts)?$")
 DIRECT_TAGS = ("w:rFonts", "w:sz", "w:color")
 HEAD_LEVELS = {"Heading1": 1, "Heading2": 2, "Heading3": 3}
+TITLE_RIGHT_IND = 2600
+TITLE_CHARS = 13
+WORD_SPLIT_RE = re.compile(r"[\s-]+")
 
 
 def para_style(p):
@@ -34,6 +37,29 @@ def para_style(p):
 
 def para_text(el):
     return "".join(t.text or "" for t in el.iter(qn("w:t")))
+
+
+def title_text(p):
+    out = []
+    for el in p.iter(qn("w:t"), qn("w:br"), qn("w:cr"), qn("w:tab"), qn("w:softHyphen"), qn("w:noBreakHyphen")):
+        if el.tag == qn("w:t"):
+            out.append(el.text or "")
+        elif el.tag in (qn("w:softHyphen"), qn("w:noBreakHyphen")):
+            out.append("-")
+        else:
+            out.append(" ")
+    return "".join(out)
+
+
+def check_title_width(doc):
+    bad = []
+    for p in body_paras(doc):
+        if para_style(p) != "Title":
+            continue
+        bad.extend(w for w in WORD_SPLIT_RE.split(title_text(p)) if len(w) > TITLE_CHARS)
+    if bad:
+        return False, f"Title word longer than {TITLE_CHARS} characters breaks mid-word: " + ", ".join(bad)
+    return True, f"every Title word fits the {TITLE_CHARS} character line"
 
 
 def check_styles(doc):
@@ -199,6 +225,7 @@ def main():
     checks = [
         ("template-styles", lambda: check_styles(doc)),
         ("no-direct-format", lambda: check_direct(doc)),
+        ("title-width", lambda: check_title_width(doc)),
         ("h1-format", lambda: check_h1(doc)),
         ("heading-order", lambda: check_levels(doc)),
         ("table-style-caption", lambda: check_table_style(doc)),
