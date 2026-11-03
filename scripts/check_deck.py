@@ -26,6 +26,8 @@ MAX_ROWS = 7
 MAX_COLS = 5
 MAX_BULLETS = 6
 MAX_TITLE = 55
+ACCENT = "7A2E2E"
+TYPED_NUM_RE = re.compile(r"^\s*\d+[.)]\s")
 
 
 def layout_name(slide):
@@ -154,6 +156,27 @@ def check_bullets(prs):
     return True, "bullets keep to six items and two levels"
 
 
+def check_numbering(prs):
+    bad = []
+    for i, slide in enumerate(prs.slides, 1):
+        for shape in slide.placeholders:
+            if ph_type(shape) in EXEMPT_PH or not shape.has_text_frame:
+                continue
+            for p in shape.text_frame.paragraphs:
+                ppr = p._p.pPr
+                auto = ppr is not None and ppr.find(qn("a:buAutoNum")) is not None
+                if auto:
+                    clr = ppr.find(qn("a:buClr"))
+                    srgb = clr.find(qn("a:srgbClr")) if clr is not None else None
+                    if srgb is None or (srgb.get("val") or "").upper() != ACCENT:
+                        bad.append(f"slide {i} '{short(p.text)}' numbered without #7a2e2e buClr")
+                if p.level == 0 and TYPED_NUM_RE.match(p.text):
+                    bad.append(f"slide {i} '{short(p.text)}' has a typed number")
+    if bad:
+        return False, "; ".join(bad[:5])
+    return True, "numbered lists use buAutoNum in #7a2e2e and no typed numbers"
+
+
 def check_titles(prs):
     bad = []
     for i, slide in enumerate(prs.slides, 1):
@@ -235,6 +258,7 @@ def main():
         ("direct-format", lambda: check_direct(prs)),
         ("tables", lambda: check_tables(prs)),
         ("bullets", lambda: check_bullets(prs)),
+        ("numbering", lambda: check_numbering(prs)),
         ("titles", lambda: check_titles(prs)),
         ("charts-pictures", lambda: check_figures(prs)),
         ("file-name", lambda: check_name(path)),
