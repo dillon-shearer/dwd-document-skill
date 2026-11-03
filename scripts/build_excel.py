@@ -12,92 +12,24 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
     import openpyxl
 
-from openpyxl.chart import BarChart, Reference
-from openpyxl.chart.shapes import GraphicalProperties
-from openpyxl.chart.text import RichText
-from openpyxl.drawing.line import LineProperties
-from openpyxl.drawing.text import CharacterProperties, Font as DrawingFont, Paragraph, ParagraphProperties
-from openpyxl.styles import Alignment, Border, Font, NamedStyle, PatternFill, Side
-from openpyxl.styles.colors import Color
-from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font
 from openpyxl.utils.indexed_list import IndexedList
-from openpyxl.worksheet.properties import PageSetupProperties
 from openpyxl.writer.theme import theme_xml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from dwd_excel import (
+    ACCENT, BODY_FONT, CHART, HEAD_FONT, HEADER_ROW, INK, INK2, RULE,
+    add_chart, add_table, argb, finish, new_sheet, set_widths, setup_sheet, styles,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 TEMPLATE = ASSETS / "dwd-template.xlsx"
 SAMPLE = ASSETS / "dwd-sample.xlsx"
 
-HEAD_FONT = "DM Sans"
-BODY_FONT = "Aptos"
-MONO_FONT = "IBM Plex Mono"
-
-INK = "111110"
-INK2 = "44403B"
-INK3 = "6F6B64"
-RULE = "E3E1DB"
-ACCENT = "7A2E2E"
-CHART = ["7A2E2E", "4A4239", "B8893B", "4A6B3A", "5A7A8A", "5C3A1A"]
-
 FIXED_DATE = datetime(2026, 1, 1, 0, 0, 0)
 ZIP_DATE = (2026, 1, 1, 0, 0, 0)
-
-FMT_INT = "#,##0;-#,##0;0"
-FMT_DEC = "#,##0.0;-#,##0.0;0.0"
-FMT_PCT = "0.0%"
-FMT_DATE = "yyyy-mm-dd"
-FMT_LONG_DATE = "d mmmm yyyy"
-
-TITLE_ROWS = 4
-HEADER_ROW = 6
-
-HAIR = Side(style="thin", color="FF" + RULE)
-AXIS = Side(style="thin", color="FF" + INK3)
-
-
-def argb(hexv):
-    return "FF" + hexv
-
-
-def font(name, size, color, bold=False):
-    return Font(name=name, size=size, bold=bold, color=argb(color))
-
-
-def auto_font(name, size, bold=False):
-    return Font(name=name, size=size, bold=bold, color=Color(auto=True))
-
-
-def style(name, fnt, fmt="General", fill=None, border=None, align=None):
-    s = NamedStyle(name=name)
-    s.font = fnt
-    s.number_format = fmt
-    if fill:
-        s.fill = PatternFill("solid", fgColor=argb(fill))
-    if border:
-        s.border = border
-    s.alignment = align or Alignment(vertical="center")
-    return s
-
-
-def styles():
-    body_rule = Border(bottom=HAIR)
-    left = Alignment(horizontal="left", vertical="center")
-    right = Alignment(horizontal="right", vertical="center")
-    return [
-        style("DWD Eyebrow", font(MONO_FONT, 9, INK3), align=left),
-        style("DWD Title", font(HEAD_FONT, 20, ACCENT, bold=True), align=Alignment(horizontal="left", vertical="bottom")),
-        style("DWD Subtitle", font(BODY_FONT, 12, INK2), align=left),
-        style("DWD Date", font(MONO_FONT, 9, INK3), FMT_LONG_DATE, align=left),
-        style("DWD Header", auto_font(BODY_FONT, 11, bold=True), fill=ACCENT, align=Alignment(horizontal="left", vertical="center", wrap_text=True)),
-        style("DWD Text", font(BODY_FONT, 11, INK), border=body_rule, align=left),
-        style("DWD Integer", font(BODY_FONT, 11, INK), FMT_INT, border=body_rule, align=right),
-        style("DWD Decimal", font(BODY_FONT, 11, INK), FMT_DEC, border=body_rule, align=right),
-        style("DWD Percent", font(BODY_FONT, 11, INK), FMT_PCT, border=body_rule, align=right),
-        style("DWD Date Cell", font(BODY_FONT, 11, INK), FMT_DATE, border=body_rule, align=right),
-        style("DWD Total", font(BODY_FONT, 11, INK, bold=True), FMT_INT, border=Border(top=AXIS), align=right),
-        style("DWD Caption", font(MONO_FONT, 8, INK3), align=left),
-    ]
 
 
 def brand_theme():
@@ -131,95 +63,21 @@ def new_workbook(title):
     return wb
 
 
-def setup_sheet(ws, name, title, subtitle, when):
-    ws.title = name
-    ws.sheet_view.showGridLines = False
-    ws.sheet_view.zoomScale = 100
-    ws["A1"] = "DWD - DATA WITH DILLON"
-    ws["A1"].style = "DWD Eyebrow"
-    ws["A2"] = title
-    ws["A2"].style = "DWD Title"
-    ws["A3"] = subtitle
-    ws["A3"].style = "DWD Subtitle"
-    ws["A4"] = when
-    ws["A4"].style = "DWD Date"
-    ws.row_dimensions[2].height = 30
-    ws.row_dimensions[HEADER_ROW].height = 22
-    ws.freeze_panes = ws.cell(row=HEADER_ROW + 1, column=1)
-    ws.page_setup.orientation = "portrait"
-    ws.page_setup.paperSize = ws.PAPERSIZE_LETTER
-    ws.page_setup.fitToWidth = 1
-    ws.page_setup.fitToHeight = 0
-    ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
-    ws.page_margins.left = ws.page_margins.right = 1.0
-    ws.page_margins.top = ws.page_margins.bottom = 1.0
-    ws.page_margins.header = ws.page_margins.footer = 0.5
-    ws.print_title_rows = f"{HEADER_ROW}:{HEADER_ROW}"
-    for part, text in ((ws.oddHeader.left, "DWD"), (ws.oddHeader.right, "&A"), (ws.oddFooter.right, "&P")):
-        part.text = text
-        part.font = f"{MONO_FONT},Regular"
-        part.size = 8
-        part.color = INK3
-
-
-def set_widths(ws, widths):
-    for i, w in enumerate(widths, 1):
-        ws.column_dimensions[get_column_letter(i)].width = w
-
-
 def build_template():
     wb = new_workbook("DWD template")
     ws = wb.active
     setup_sheet(ws, "Sheet1", "Workbook title", "One line on what this sheet holds", date(2026, 1, 1))
-    heads = ["Item", "Value", "Value", "Value", "Value"]
+    heads = ["Item", "Value 1", "Value 2", "Value 3", "Value 4"]
     for c, h in enumerate(heads, 1):
         ws.cell(row=HEADER_ROW, column=c, value=h).style = "DWD Header"
     set_widths(ws, [24, 14, 14, 14, 14])
     save_stable(wb, TEMPLATE)
 
 
-def chart_text(size, color, bold=False):
-    cp = CharacterProperties(sz=size * 100, b=bold, solidFill=color, latin=DrawingFont(typeface=BODY_FONT))
-    return RichText(p=[Paragraph(pPr=ParagraphProperties(defRPr=cp), endParaRPr=cp)])
-
-
-def add_chart(ws, first, last, ncols, anchor):
-    ch = BarChart()
-    ch.type = "col"
-    ch.grouping = "clustered"
-    ch.overlap = -10
-    ch.gapWidth = 80
-    ch.title = None
-    ch.style = 2
-    data = Reference(ws, min_col=2, max_col=ncols, min_row=first - 1, max_row=last)
-    cats = Reference(ws, min_col=1, min_row=first, max_row=last)
-    ch.add_data(data, titles_from_data=True)
-    ch.set_categories(cats)
-    for i, s in enumerate(ch.series):
-        s.graphicalProperties.solidFill = CHART[i % len(CHART)]
-        s.graphicalProperties.line.noFill = True
-    ch.x_axis.delete = False
-    ch.y_axis.delete = False
-    ch.x_axis.graphicalProperties = GraphicalProperties(ln=LineProperties(solidFill=INK3, w=9525))
-    ch.y_axis.graphicalProperties = GraphicalProperties(ln=LineProperties(noFill=True))
-    ch.y_axis.majorGridlines.spPr = GraphicalProperties(ln=LineProperties(solidFill=RULE, w=9525))
-    ch.y_axis.numFmt = FMT_INT
-    ch.y_axis.number_format = FMT_INT
-    ch.x_axis.txPr = chart_text(9, INK3)
-    ch.y_axis.txPr = chart_text(9, INK3)
-    ch.legend.position = "b"
-    ch.legend.txPr = chart_text(9, INK2)
-    ch.graphical_properties = GraphicalProperties(ln=LineProperties(noFill=True))
-    ch.width = 18
-    ch.height = 8.5
-    ws.add_chart(ch, anchor)
-
-
-def build_sample():
-    wb = new_workbook("DWD sample workbook")
+def build_orders(wb):
     ws = wb.active
-    setup_sheet(ws, "Orders", "Orders by region", "Order count per region and quarter, 2026", date(2026, 11, 3))
-    heads = ["Region", "Q1", "Q2", "Q3", "Q4"]
+    setup_sheet(ws, "Orders", "Orders by region", "Order count per region and quarter, 2026; returns are negative", date(2026, 11, 3))
+    heads = ["Region", "Q1", "Q2", "Q3", "Q4", "Q4 share"]
     rows = [
         ["North", 1240, 1315, 1402, 1530],
         ["South", 980, 1022, 1105, 1187],
@@ -227,18 +85,98 @@ def build_sample():
         ["West", 860, 912, 975, 1044],
         ["Central", 1120, 1176, 1210, 1298],
         ["Online", 1650, 1804, 1932, 2110],
+        ["Wholesale", 0, 140, 265, 310],
+        ["Returns", -95, -110, -122, -138],
     ]
-    for c, h in enumerate(heads, 1):
-        ws.cell(row=HEADER_ROW, column=c, value=h).style = "DWD Header"
-    first = HEADER_ROW + 1
-    for r, row in enumerate(rows, first):
-        for c, v in enumerate(row, 1):
-            ws.cell(row=r, column=c, value=v).style = "DWD Text" if c == 1 else "DWD Integer"
-    last = first + len(rows) - 1
-    ws.cell(row=last + 1, column=1, value="Table 1. Orders by region and quarter").style = "DWD Caption"
-    set_widths(ws, [24, 14, 14, 14, 14])
-    add_chart(ws, first, last, len(heads), f"A{last + 3}")
-    ws.cell(row=last + 21, column=1, value="Figure 1. Orders by region and quarter").style = "DWD Caption"
+    rows = [r + ["=E{row}/SUM(B{row}:E{row})"] for r in rows]
+    set_widths(ws, [24, 14, 14, 14, 14, 14])
+    first, last, nxt = add_table(
+        ws, heads, rows,
+        ["DWD Text", "DWD Integer", "DWD Integer", "DWD Integer", "DWD Integer", "DWD Percent"],
+        total=["Total", None, None, None, None, "=E{row}/SUM(B{row}:E{row})"],
+        caption="Table 1. Orders by region and quarter",
+    )
+    add_chart(ws, "column", first, last, 5, f"A{nxt + 1}")
+    ws.cell(row=nxt + 19, column=1, value="Figure 1. Orders by region and quarter").style = "DWD Caption"
+
+
+def build_notes(wb):
+    ws = new_sheet(wb, "Notes", "Notes on the data", "Sources, definitions and known gaps for this workbook", date(2026, 11, 3))
+    set_widths(ws, [24, 40])
+    add_table(
+        ws, ["Topic", "Note"],
+        [
+            ["Source", "Order system export taken on 2 November 2026, all channels, net of cancellations."],
+            ["Returns", "Returned orders are counted in the quarter of the return and shown as negative values."],
+            ["Wholesale", "The wholesale channel opened in April 2026, so Q1 is a true zero, not missing data."],
+            ["Revenue", "Revenue is in US dollar millions at list price before discounts, rounded to one decimal."],
+        ],
+        ["DWD Text", "DWD Text Wrap"],
+        caption="Table 2. Sources and definitions",
+    )
+
+
+def build_trend(wb):
+    ws = new_sheet(wb, "Trend", "Revenue by month", "Revenue in $ millions, January to June, 2024 to 2026", date(2026, 11, 3))
+    heads = ["Month", "2024", "2025", "2026"]
+    rows = [
+        ["January", 4.2, 4.6, 5.1],
+        ["February", 3.9, 4.4, 4.8],
+        ["March", 4.5, 5.0, 5.6],
+        ["April", 4.7, 5.2, 5.9],
+        ["May", 4.9, 5.5, 6.2],
+        ["June", 5.3, 5.8, 6.6],
+    ]
+    set_widths(ws, [24, 14, 14, 14])
+    first, last, nxt = add_table(
+        ws, heads, rows,
+        ["DWD Text", "DWD Decimal", "DWD Decimal", "DWD Decimal"],
+        total="Total",
+        caption="Table 3. Revenue by month, $ millions",
+    )
+    add_chart(ws, "line", first, last, 4, f"A{nxt + 1}", palette="sequential")
+    ws.cell(row=nxt + 19, column=1, value="Figure 2. Revenue by month, 2024 to 2026").style = "DWD Caption"
+
+
+def build_raw(wb):
+    regions = ["North", "South", "East", "West", "Central", "Online"]
+    channels = ["Store", "Web", "Phone"]
+    products = ["Starter kit", "Refill pack", "Pro bundle", "Gift card"]
+    prices = [24.0, 9.5, 59.0, 25.0]
+    rows = []
+    for i in range(12):
+        p = i % 4
+        rows.append([
+            f"ORD-{1001 + i}",
+            date(2026, 10, 1 + i * 2),
+            regions[i % 6],
+            channels[i % 3],
+            products[p],
+            1 + (i * 7) % 5,
+            prices[p],
+            [0, 0.05, 0.1][i % 3],
+            "=F{row}*G{row}*(1-H{row})",
+            "Yes" if i in (3, 8) else "No",
+        ])
+    ws = new_sheet(wb, "Raw", "Order lines", f"Raw order lines, October 2026, {len(rows)} rows", date(2026, 11, 3), landscape=True)
+    ws.freeze_panes = "B7"
+    heads = ["Order ID", "Date", "Region", "Channel", "Product", "Units", "Unit price", "Discount", "Revenue", "Returned"]
+    set_widths(ws, [14, 14, 12, 12, 16, 10, 12, 12, 12, 12])
+    add_table(
+        ws, heads, rows,
+        ["DWD Text", "DWD Date Cell", "DWD Text", "DWD Text", "DWD Text", "DWD Integer", "DWD Decimal", "DWD Percent", "DWD Decimal", "DWD Text"],
+        caption="Table 4. Order lines, October 2026",
+        autofilter=True,
+    )
+
+
+def build_sample():
+    wb = new_workbook("DWD sample workbook")
+    build_orders(wb)
+    build_notes(wb)
+    build_trend(wb)
+    build_raw(wb)
+    finish(wb)
     save_stable(wb, SAMPLE)
 
 

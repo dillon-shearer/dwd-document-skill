@@ -19,7 +19,7 @@ format.
 - `references/html.md`: rules for single-file HTML reports (.html).
 - `assets/`: ready-made templates, where one exists.
 - `scripts/`: the scripts that build the templates, check finished files, and
-  the PowerPoint helpers (`dwd_pptx.py`).
+  the PowerPoint and Excel helpers (`dwd_pptx.py`, `dwd_excel.py`).
 
 For a format with no file under `references/` yet, apply `brand.md` and say so in
 the output.

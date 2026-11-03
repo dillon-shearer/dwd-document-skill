@@ -1,6 +1,6 @@
 # Scripts
 
-Build scripts for the templates in `assets/`, output checkers and the PowerPoint helper module live here. They target Python 3.10 and use the standard library, plus python-docx, python-pptx or openpyxl where needed.
+Build scripts for the templates in `assets/`, output checkers and the PowerPoint and Excel helper modules live here. They target Python 3.10 and use the standard library, plus python-docx, python-pptx or openpyxl where needed.
 
 ## build_word.py
 
@@ -49,7 +49,22 @@ Builds `assets/dwd-template.xlsx` and `assets/dwd-sample.xlsx` from the rules in
 
     python scripts/build_excel.py
 
-It needs openpyxl. If it is missing the script installs it with `pip install openpyxl`; you can also install it yourself first. Reruns overwrite both files, and the same input gives the same contents.
+It needs openpyxl. If it is missing the script installs it with `pip install openpyxl`; you can also install it yourself first. It imports its styles and helpers from `dwd_excel.py`. Reruns overwrite both files and give the same contents, not the same bytes: on one machine the bytes match run to run, but other library versions can write different bytes.
+
+## dwd_excel.py
+
+The helpers agents use to build a workbook from the template: `setup_sheet`, `new_sheet`, `set_widths`, `add_table`, `add_chart`, `chart_text` and `finish`, plus the brand constants and the `styles` list. `references/excel.md` documents each one. It needs only openpyxl, installs nothing and does nothing at import:
+
+    import sys; sys.path.insert(0, "scripts")
+    import dwd_excel
+
+## check_xlsx.py
+
+Checks a finished .xlsx against `references/excel.md`. Run it with the file as the only argument:
+
+    python scripts/check_xlsx.py path/to/file.xlsx
+
+It prints one PASS or FAIL line per check, naming the sheet and cell or chart on FAIL, and exits 1 on any FAIL. It checks that the file started from the template (all fifteen DWD named styles and the DWD theme colours), that every sheet has the title block in A1:A4 with a real date in A4 and an empty row 5, that every cell from row 6 down uses a DWD style with no direct font, fill or number format, that row 6 is in DWD Header with font colour Automatic, that each body column keeps one style and number cells hold numbers, that no total row sums a percent column, that there are no merged cells or hidden rows and columns, the freeze pane, gridlines, print titles, fit to one page wide and the DWD print header, that every table and chart has a "Table N." or "Figure N." caption, that chart series use brand colours and have no titles, that `fullCalcOnLoad` is set when there are formulas, and that no sheet is named Sheet or Sheet1 and the file name has no spaces. It needs openpyxl and installs it with pip if missing. `check.py` at the repo root runs it on `assets/dwd-sample.xlsx`.
 
 ## check_md.py
 
