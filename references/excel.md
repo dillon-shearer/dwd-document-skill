@@ -4,9 +4,40 @@ Rules for writing a .xlsx in the DWD brand. Read [brand.md](brand.md) first; thi
 
 ## Start from the template
 
-Open `assets/dwd-template.xlsx` (openpyxl: `load_workbook("assets/dwd-template.xlsx")`). It holds the named styles, the theme colours and fonts, one formatted sheet with the title block, a header row, print setup and the freeze pane. `assets/dwd-sample.xlsx` shows a filled sheet with a table and a chart. Apply the named styles; never format a cell by hand when a style exists.
+Open `assets/dwd-template.xlsx` (openpyxl: `load_workbook("assets/dwd-template.xlsx")`). It holds the named styles, the theme colours and fonts, and one formatted sheet named "Sheet1" with the title block, a header row, print setup and the freeze pane. Rename that sheet before you fill it. `assets/dwd-sample.xlsx` shows every helper below in use: a table with a total and a chart, a notes sheet, a trend sheet with a line chart and a raw data sheet. Apply the named styles; never format a cell by hand when a style exists.
 
 To change the template, edit `scripts/build_excel.py` and run it. Do not edit the .xlsx files by hand.
+
+## Helpers
+
+`scripts/dwd_excel.py` needs only openpyxl and does nothing at import. Add the scripts folder to the path, then import it: `sys.path.insert(0, "scripts")`, `import dwd_excel`. It also holds the brand constants (fonts, `INK`, `ACCENT`, `CHART`, `SEQUENTIAL`, `DIVERGING`, `FMT_INT`, `HEADER_ROW` and the rest).
+
+- `setup_sheet(ws, name, title, subtitle, when, landscape=False)`: renames a sheet and sets the title block, row heights, freeze pane, gridlines off, print setup, print titles and header and footer.
+- `new_sheet(wb, name, title, subtitle, when, landscape=False)`: a new sheet with all of `setup_sheet` applied; returns it. `landscape` flips the orientation only.
+- `set_widths(ws, widths)`: column widths from column A, in Excel character units. Set them before `add_table`.
+- `add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption=None, autofilter=False)`: header row, body rows with one style name per column in `styles`, an optional total row, the caption on the next row, and an AutoFilter on header and body when `autofilter` is true. `total` is the label, or a list with the label first and one entry per column: `None` for the default (SUM for integer and decimal columns, empty otherwise), `""` for empty, or a formula. In formulas `{row}`, `{first}` and `{last}` become the current, first body and last body row. Clears leftover template header cells to the right of `heads`. Raises the header row to 30 when a header is longer than its column or holds a newline. Returns `(first_body_row, last_body_row, next_free_row)`.
+- `add_chart(ws, kind, first, last, ncols, anchor, palette="categorical", label_col=1)`: a native chart over body rows `first` to `last`, labels in `label_col`, series in the next `ncols - 1` columns. `kind` is "column", "bar" or "line"; returns the chart.
+- `chart_text(size, color, bold=False)`: the rich text block the charts use for axis and legend text.
+- `finish(wb)`: sets `fullCalcOnLoad` and drops any empty sheet still named "Sheet" or "Sheet1". Call it before `save`.
+
+## Starter
+
+```python
+import sys; sys.path.insert(0, "scripts")
+import dwd_excel as d
+from datetime import date
+from openpyxl import load_workbook
+wb = load_workbook("assets/dwd-template.xlsx")
+ws = wb.active
+d.setup_sheet(ws, "Orders", "Orders by region", "Order count per region, 2026", date(2026, 11, 3))
+d.set_widths(ws, [24, 14, 14])
+first, last, nxt = d.add_table(ws, ["Region", "Q1", "Q2"], [["North", 1240, 1315], ["South", 980, 1022]],
+    ["DWD Text", "DWD Integer", "DWD Integer"], total="Total", caption="Table 1. Orders by region")
+d.add_chart(ws, "column", first, last, 3, f"A{nxt + 1}")
+ws.cell(row=nxt + 19, column=1, value="Figure 1. Orders by region").style = "DWD Caption"
+d.finish(wb)
+wb.save("dwd-orders-by-region.xlsx")
+```
 
 ## Fonts
 
@@ -16,7 +47,9 @@ To change the template, edit `scripts/build_excel.py` and run it. Do not edit th
 | Body, table cells | Aptos 11pt | Calibri |
 | Eyebrow, date, captions, print header and footer | IBM Plex Mono | Consolas |
 
-Excel has no per-cell fallback list. When the file goes to readers outside DWD and must look the same everywhere, change `HEAD_FONT`, `BODY_FONT` and `MONO_FONT` in the script to the fallback fonts and rebuild under a new file name. Never embed fonts.
+Excel has no per-cell fallback list; on a machine without a brand font it substitutes one. DM Sans, Aptos and IBM Plex Mono are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the template because of it. Never embed fonts.
+
+This file overrides generic xlsx guidance on fonts (Arial or Times): DWD workbooks use the template fonts.
 
 ## Named styles
 
@@ -29,15 +62,18 @@ Use only these cell styles. They show under Home > Cell Styles; openpyxl takes t
 | Subtitle (A3) | DWD Subtitle | Aptos 12pt, #44403b |
 | Date (A4) | DWD Date | IBM Plex Mono 9pt, #6f6b64, `d mmmm yyyy` |
 | Table header row | DWD Header | Aptos 11pt bold, #7a2e2e fill, font colour Automatic |
-| Text cells | DWD Text | Aptos 11pt, #111110, left, #e3e1db hairline below |
+| Text cells | DWD Text | Aptos 11pt, #111110, left, thin #e3e1db rule below |
+| Long text cells | DWD Text Wrap | as DWD Text, wrap on, top aligned |
 | Whole numbers | DWD Integer | as DWD Text, right, `#,##0` |
 | Decimals | DWD Decimal | as DWD Text, right, `#,##0.0` |
 | Percentages | DWD Percent | as DWD Text, right, `0.0%` |
 | Dates in a table | DWD Date Cell | as DWD Text, right, `yyyy-mm-dd` |
-| Total row | DWD Total | Aptos 11pt bold, right, `#,##0`, 1px #6f6b64 rule above |
+| Total row label | DWD Total Label | Aptos 11pt bold, left, thin #6f6b64 rule above |
+| Whole number total | DWD Total Integer | as DWD Total Label, right, `#,##0` |
+| Decimal total | DWD Total Decimal | as DWD Total Label, right, `#,##0.0` |
 | Table or chart label | DWD Caption | IBM Plex Mono 8pt, #6f6b64 |
 
-Normal is Aptos 11pt #111110. Need another number format (currency, two decimals)? Copy the nearest style in the script under a new `DWD` name and rebuild; do not set formats cell by cell.
+Normal is Aptos 11pt #111110. A text column whose entries would need a width over 40 uses DWD Text Wrap at width 40. Need another number format (currency, two decimals)? Copy the nearest style in the script under a new `DWD` name and rebuild; do not set formats cell by cell.
 
 ## Title block
 
@@ -45,62 +81,88 @@ Rows 1 to 4 of every sheet, in column A, no merged cells:
 
 1. A1, DWD Eyebrow: "DWD - DATA WITH DILLON". The mark reads "DWD".
 2. A2, DWD Title: the sheet title, short, sentence case.
-3. A3, DWD Subtitle: one line on what the sheet holds.
+3. A3, DWD Subtitle: one line on what the sheet holds, with the data source and units when the caption does not give them.
 4. A4, DWD Date: the date as a real date value, not text.
 
 Row 5 stays empty. The table header row is row 6.
 
 ## Table header row
 
-DWD Header: #7a2e2e fill, bold, left aligned, wrap on. The font colour is Automatic (`<color auto="1"/>`), never fixed white. Excel shows white text on the oxblood fill and keeps it readable when dark mode recolours the fill.
+DWD Header: #7a2e2e fill, bold, left aligned, wrap on. The font colour is Automatic (`<color auto="1"/>`), never fixed white. Excel shows white text on the oxblood fill and keeps it readable when dark mode recolours the fill. The template row is 22 high; `add_table` makes it 30 when a header wraps.
 
 LibreOffice and Google Sheets do not do this contrast pick and may show dark text on the fill. That is expected; do not "fix" it to white. Only if the file must look right outside Excel, switch to fixed white and accept poor dark-mode contrast.
 
-## Body rows
+## Body rows and totals
 
-Hairline rule, no banding: each body cell has a 1px #e3e1db bottom border and no vertical rules. Do not fill body rows. Gridlines are off on every sheet. First column left aligned (DWD Text); number columns right aligned with a number style. One header row, no merged cells, no blank rows or columns inside a table. Put a DWD Caption cell in column A on the row under the table: "Table 1. Orders by region and quarter".
+No banding: each body cell has a thin #e3e1db bottom border (Excel border style `thin`, openpyxl `Side(style="thin")`) and no vertical rules. Do not fill body rows. Gridlines are off on every sheet. First column left aligned (DWD Text); number columns right aligned with a number style. One header row, no merged cells, no blank rows or columns inside a table. Put a DWD Caption cell in column A on the row under the table, or under the total row: "Table 1. Orders by region and quarter".
+
+A total row puts its label in DWD Total Label and each sum in the Total style matching the column (DWD Total Integer or DWD Total Decimal), with a thin #6f6b64 rule above. A percent column total is a ratio formula (total numerator over total denominator) in DWD Percent, never a SUM of percentages. A date column total stays empty.
 
 ## Number and date formats
 
 - Whole numbers: `#,##0`. Decimals: `#,##0.0`. Percentages: `0.0%`. Store values as numbers, never as text.
+- Percentages are stored as fractions: 0.173 shows as 17.3%.
 - Negatives with a minus sign, not brackets or red.
 - Dates in tables: `yyyy-mm-dd`. Title block date: `d mmmm yyyy`.
-- Keep one format per column.
+- Keep one format per column. Say the units in A3 or the caption ("$ millions").
+
+## Formulas and data
+
+- Calculated cells stay formulas. `finish` sets `fullCalcOnLoad`, so Excel computes them on open.
+- A blank cell means missing; 0 means zero. Never swap them.
+- Note the data source and units in A3 or the caption.
+- Do not re-save the file through LibreOffice to recalculate it. It drops the Automatic header colour, reorders the named styles so openpyxl cannot resolve them, and rewrites the theme. If cached values are needed, compute them in Python and write both.
 
 ## Column widths and freeze panes
 
-- First column 24, number columns 14 (Excel character units). Widen to fit the longest entry plus 2, at most 40; wrap header text instead of going wider.
+- First column 24, number columns 14 (Excel character units). Widen to fit the longest entry plus 2, at most 40; wrap header text and long text instead of going wider.
 - Do not hide columns or rows.
 - Freeze panes at A7 so the title block and header row stay in view (`ws.freeze_panes = "A7"`). For a table wider than the screen, freeze at B7 so the first column stays too.
 
 ## Print setup
 
-Portrait, US Letter, 1 inch margins, fit to one page wide. Row 6 repeats on each printed page. Print header: "DWD" left, sheet name right; footer: page number right; all IBM Plex Mono 8pt #6f6b64. The template sets all of this.
-
-## Charts
-
-Use native Excel charts, not pictures. The theme accents are the brand series, so a new chart picks them up in order; set the series colours by hand when you build a chart in code:
-
-1. #7a2e2e
-2. #4a4239
-3. #b8893b
-4. #4a6b3a
-5. #5a7a8a
-6. #5c3a1a
-
-For ordered data use the sequential series and for above/below data the diverging series, both in brand.md. Category axis line 1px #6f6b64, gridlines #e3e1db, no chart border, legend at the bottom, axis text 9pt #6f6b64. No chart title inside the chart: put a DWD Caption cell under it ("Figure 1. Orders by region and quarter"). Place charts below the table, starting in column A.
+Portrait, US Letter, 1 inch margins, fit to one page wide. Row 6 repeats on each printed page. Print header: "DWD" left, sheet name right; footer: page number right; all IBM Plex Mono 8pt #6f6b64. The template and `new_sheet` set all of this.
 
 ## Sheets
 
-One table per sheet. Name sheets in one or two plain words ("Orders", "Notes"), no default "Sheet1" in a sent file. Each sheet gets the title block.
+Name sheets in one or two plain words ("Orders", "Notes"), no default "Sheet1" in a sent file. Each sheet gets the title block. For a second sheet use `new_sheet`; never `copy_worksheet`, which drops the sheet view, the header and footer and the print titles.
+
+## Wide sheets
+
+The default is one table per sheet, portrait, one page wide. These exceptions are allowed; state each in the subtitle or caption:
+
+1. More than about eight columns: landscape via `new_sheet(..., landscape=True)`, freeze at B7.
+2. A raw data sheet: no chart, DWD styles on every column, AutoFilter on the header row (`autofilter=True`), no native Excel Table, the row count in the subtitle.
+3. More than one table on a sheet: each has its own caption, two empty rows between tables, numbered Table 1, Table 2.
+4. A dashboard sheet: tables and charts side by side in column blocks, only when each block keeps its caption and the sheet still prints one page wide in landscape.
+
+Never hide, merge or shrink text to fit.
+
+## Charts
+
+Use native Excel charts, not pictures. `add_chart` makes three kinds: column, bar and line. Line charts get 2.25pt lines and no markers. The theme accents are the categorical series, so a new chart picks them up in order: #7a2e2e, #4a4239, #b8893b, #4a6b3a, #5a7a8a, #5c3a1a.
+
+Three palettes, from brand.md: categorical (above) by default; sequential for ordered bands such as years or size bands (with fewer than six series it uses the darkest ones, light to dark); diverging for signed values around a zero baseline (the category axis crosses at 0, labels stay at the bottom). Never colour unrelated categories with the sequential series. Category axis line 9525 EMU (0.75pt) #6f6b64, gridlines 9525 EMU #e3e1db, no chart border, legend at the bottom, axis text 9pt #6f6b64. No chart title inside the chart: put a DWD Caption cell under it ("Figure 1. Orders by region and quarter"). Place charts below the table, starting in column A.
+
+## Voice
+
+Pick the voice for each workbook as brand.md's Voice section says. When nobody is there to ask, default to neutral third person; ask only when an operator is available.
 
 ## Checklist before sending
 
-- Started from `assets/dwd-template.xlsx`; cells use the DWD styles, no direct font, size or colour changes.
-- Every sheet has the title block in A1:A4 and a real date in A4.
-- Header row in DWD Header with font colour Automatic; body rows with the hairline rule, no fills.
-- Numbers stored as numbers, right aligned, one format per column.
-- Freeze pane under the header row; gridlines off; no merged or hidden cells.
-- Every table and chart has a DWD Caption; chart colours follow the order above.
-- Sheets named; no empty default sheets.
-- File name has no spaces, for example `dwd-orders-by-region.xlsx`.
+Each line is one `check_xlsx.py` check unless marked human.
+
+- Started from the template: all fifteen DWD named styles and the DWD theme colours are present.
+- Every sheet has the title block in A1:A4, a real date in A4 and an empty row 5.
+- Every cell from row 6 down uses a DWD style, with no direct font, fill or number format.
+- Row 6 is in DWD Header with font colour Automatic.
+- Each body column uses one style; number and date cells hold numbers or dates, not text.
+- No total row sums a percent column.
+- No merged cells, no hidden rows or columns.
+- Every sheet: freeze pane at A7 or B7, gridlines off, print titles row 6, one page wide, "DWD" in the print header.
+- Every table has a "Table N." caption; every chart has a "Figure N." caption below it.
+- Chart series use brand colours; no chart titles.
+- `fullCalcOnLoad` is set when the workbook holds formulas.
+- No sheet named Sheet or Sheet1; file name has no spaces, for example `dwd-orders-by-region.xlsx`.
+- Human: the palette fits the data (sequential for ordered, diverging for signed), blanks mean missing, sources and units are stated.
+- `python scripts/check_xlsx.py file.xlsx` passes.
