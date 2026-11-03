@@ -6,16 +6,7 @@ build/
 !.env.example
 !.env.sample
 !.env.template
-.kanban95/board.db
-.kanban95/board.db-*
-.kanban95/sessions/
-.kanban95/attachments/
-.kanban95/output/
-.kanban95/memory.log
-.kanban95/notepad.md
-.kanban95/runner.json
-.kanban95/ui.json
-.kanban95/templates/*.replaced.md
+.kanban95/
 .remember/
 *.stackdump
 scratch/
