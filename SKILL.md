@@ -1,6 +1,6 @@
 ---
 name: dwd-document-skill
-description: Use this skill when producing any document, deck, sheet or other deliverable for Data With Dillon (DWD), so it follows the DWD brand.
+description: Brand rules, templates and checkers for Data With Dillon (DWD) deliverables: reports, Word (.docx), PowerPoint decks (.pptx), Excel workbooks (.xlsx), Markdown (.md) and single-file HTML, for use with any DWD document, deck, sheet or page.
 ---
 
 # DWD Document Skill

@@ -126,6 +126,19 @@ def check_xlsx():
     return "PASS", f"check_xlsx.py passes {len(lines)} checks on assets/dwd-sample.xlsx"
 
 
+def check_html():
+    script = ROOT / "scripts" / "check_html.py"
+    sample = ROOT / "assets" / "dwd-report.html"
+    if not script.exists() or not sample.exists():
+        return "SKIP", "scripts/check_html.py or assets/dwd-report.html not present"
+    run = subprocess.run([sys.executable, str(script), str(sample)], capture_output=True, text=True)
+    lines = run.stdout.splitlines()
+    if run.returncode != 0:
+        bad = [l for l in lines if l.startswith("FAIL")] or [run.stderr.strip().splitlines()[-1] if run.stderr.strip() else "exit " + str(run.returncode)]
+        return "FAIL", "check_html.py on assets/dwd-report.html: " + "; ".join(bad)
+    return "PASS", f"check_html.py passes {len(lines)} checks on assets/dwd-report.html"
+
+
 def main():
     checks = [
         ("skill-frontmatter", check_skill),
@@ -135,6 +148,7 @@ def main():
         ("pptx-sample", check_pptx),
         ("md-sample", check_md),
         ("xlsx-sample", check_xlsx),
+        ("html-sample", check_html),
     ]
     failed = False
     for name, fn in checks:
