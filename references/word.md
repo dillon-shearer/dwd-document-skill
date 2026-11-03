@@ -1,3 +1,113 @@
 # Word
 
-Pending: Word rules are not written yet. Read [brand.md](brand.md) first.
+Rules for writing a .docx in the DWD brand. Read [brand.md](brand.md) first; this file maps those rules onto Word.
+
+## Start from the template
+
+Open `assets/dwd-template.docx` (python-docx: `Document("assets/dwd-template.docx")`), delete its one empty body paragraph, then add content. The template already holds every style, the header, the footer, the page setup, the theme colours and the font fallbacks. `assets/dwd-sample.docx` shows every recipe below. Never restyle text by hand when a style exists: apply the style.
+
+To change the template, edit `scripts/build_word.py` and run it. Do not edit the .docx files by hand.
+
+## Styles
+
+Use only these styles. Names are as Word shows them; python-docx takes the same names.
+
+| Use | Style | Look |
+| --- | --- | --- |
+| Cover title | Title | DM Sans 700, 44pt, #111110 |
+| Cover subtitle | Subtitle | Aptos 14pt, #44403b |
+| Cover eyebrow | Cover Eyebrow | IBM Plex Mono 9pt, caps, #6f6b64 |
+| Cover date | Cover Date | IBM Plex Mono 9pt, caps, #6f6b64 (first-page footer) |
+| Section | Heading 1 | DM Sans 700, 21pt, #7a2e2e, 1px #6f6b64 rule below |
+| Subsection | Heading 2 | DM Sans 700, 15pt, #7a2e2e |
+| Minor heading | Heading 3 | DM Sans 700, 11.5pt, #7a2e2e |
+| Body | Normal | Aptos 11pt, #111110, line 1.15, 6.6pt after |
+| Bullets | List Bullet | #7a2e2e square bullet (see Lists) |
+| Steps | List Number | #7a2e2e bold numbers |
+| Quotation | Quote | Aptos 12pt italic, #44403b, indented both sides |
+| Key point | Callout | 3px #7a2e2e left bar, no fill |
+| Table or chart label | Caption | IBM Plex Mono 8pt, caps, #6f6b64 |
+| Tables | DWD Table (table style) | see Tables |
+
+Heading sizes are brand.md's 28px, 20px and 15px in points. Do not use Heading 4 or lower; split the section instead.
+
+## Fonts
+
+| Role | Font | Office-safe fallback |
+| --- | --- | --- |
+| Headings, title | DM Sans | Segoe UI |
+| Body | Aptos | Calibri |
+| Labels, header, footer, captions | IBM Plex Mono | Consolas |
+
+The template's font table names each fallback (`altName`), so Word swaps it in when the brand font is missing. When the file goes to readers outside DWD and must look the same everywhere, set the fallback fonts in the styles instead (change `HEAD_FONT`, `BODY_FONT` and `MONO_FONT` in the script and rebuild under a new file name). Never embed fonts.
+
+## Page setup
+
+US Letter, portrait, single column, 2.54 cm (1 inch) margins on all four sides. Header and footer sit 1.27 cm from the page edge. Do not add section breaks that change any of this.
+
+## Header and footer
+
+Page 1 is the cover and uses its own header and footer ("different first page" is on).
+
+- Header, page 2 onward: the mark at left, which reads "DWD" (character style DW Mark: bold, #7a2e2e fill, font colour Automatic), a tab, then a `STYLEREF "Heading 1"` field that shows the current section. Rule below in #e3e1db.
+- Footer, page 2 onward: a `PAGE` field at right, nothing at left. Rule above in #e3e1db.
+- Cover header: empty. Cover footer: the date, style Cover Date, for example "November 2026".
+- Header and footer text is IBM Plex Mono 8pt, caps, letter spacing 0.08em, #6f6b64. This comes from the Header and Footer styles; do not format it by hand.
+
+Write each Heading 1 as number, space, hyphen, space, name ("2 - Methods") so the header reads like brand.md's example.
+
+## Cover page recipe
+
+1. Cover Eyebrow: "Data With Dillon". Its space before puts the block about one third down the page.
+2. Title: the document title. Its right indent keeps it to about 9 characters per line; keep titles short.
+3. Subtitle: one line on what the document is.
+4. Put the date in the first-page footer (style Cover Date).
+5. Start the first Heading 1 on page 2 with `paragraph_format.page_break_before = True`. Do not add an empty paragraph or a page break run.
+
+The 6px #7a2e2e bar on the left edge is a first-page-only left page border in the template. Keep it; do not draw a shape.
+
+## Table recipe
+
+1. Add the table and set `table.style = "DWD Table"`. Row 1 is the header row: #7a2e2e fill, bold text in font colour Automatic, repeats on each page.
+2. Body rows get a 1px #e3e1db rule below; there are no vertical rules. Cell padding is built in.
+3. Left align the first column and every header cell. Right align number columns in the body rows.
+4. Put a Caption paragraph under the table: "Table 1. Orders by quarter".
+5. Keep one header row. Do not merge cells or add fills to body rows.
+
+On a #7a2e2e fill, set the font colour to Automatic (`w:color w:val="auto"`), never fixed white. Word then shows white text on the oxblood fill, and dark text when Word dark mode lightens the fill, so the text stays readable in both.
+
+## Callout recipe
+
+One short paragraph in style Callout for the one thing a reader must take away from a section. No fill, no box, no icon, no bold text inside. At most one callout per page.
+
+## Lists
+
+List Bullet gives the #7a2e2e square bullet with the text indented 22px and 6px between items. List Number gives #7a2e2e numbers with the same spacing. Use List Number only for steps or ranked items. To restart numbering, add a new `w:num` that points at the same `w:abstractNum` with a `w:lvlOverride`/`w:startOverride` of 1 and use its id in the paragraph's `numPr`. Keep lists one level deep.
+
+## Charts
+
+The template's theme colours are the brand series, so a chart made in Word picks them up in order. When you colour a chart yourself, use the categorical series in this order:
+
+1. #7a2e2e
+2. #4a4239
+3. #b8893b
+4. #4a6b3a
+5. #5a7a8a
+6. #5c3a1a
+
+For ordered data use the sequential series and for above/below data the diverging series, both in brand.md. Axis lines 1px #6f6b64. Label every chart with a Caption paragraph ("Figure 1. Repeat share by month"). Insert charts as PNG at the text width (6.5 in).
+
+## Voice
+
+Pick the voice for each document as brand.md's Voice section says. Ask when the occasion is unclear.
+
+## Checklist before sending
+
+- Started from `assets/dwd-template.docx`; no direct font, size or colour changes.
+- Cover has eyebrow, title, subtitle and date; the first Heading 1 starts page 2.
+- Headings go H1, H2, H3 in order with no skipped level; each H1 reads "N - Name".
+- Every table uses DWD Table and has a caption; numbers are right aligned.
+- At most one callout per page.
+- Chart colours follow the order above.
+- Fields updated (Ctrl+A, F9 in Word) so the header shows the right section.
+- File name has no spaces, for example `dwd-quarterly-sales-review.docx`.
