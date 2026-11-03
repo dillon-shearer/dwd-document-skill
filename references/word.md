@@ -8,6 +8,23 @@ Open `assets/dwd-template.docx` (python-docx: `Document("assets/dwd-template.doc
 
 To change the template, edit `scripts/build_word.py` and run it. Do not edit the .docx files by hand.
 
+## Starter
+
+```python
+from docx import Document
+doc = Document("assets/dwd-template.docx")
+empty = doc.paragraphs[0]._p
+empty.getparent().remove(empty)
+doc.add_paragraph("Data With Dillon", style="Cover Eyebrow")
+doc.add_paragraph("Sales review", style="Title")
+doc.add_paragraph("One line on what the document is", style="Subtitle")
+doc.sections[0].first_page_footer.paragraphs[0].text = "November 2026"
+h1 = doc.add_paragraph("1 - Summary", style="Heading 1")
+h1.paragraph_format.page_break_before = True
+doc.sections[0].header.paragraphs[0]._p.xpath(".//w:fldSimple//w:t")[0].text = "1 - Summary"
+doc.save("dwd-sales-review.docx")
+```
+
 ## Styles
 
 Use only these styles. Names are as Word shows them; python-docx takes the same names.
@@ -39,7 +56,7 @@ Heading sizes are brand.md's 28px, 20px and 15px in points. Do not use Heading 4
 | Body | Aptos | Calibri |
 | Labels, header, footer, captions | IBM Plex Mono | Consolas |
 
-The template's font table names each fallback (`altName`), so Word swaps it in when the brand font is missing. When the file goes to readers outside DWD and must look the same everywhere, set the fallback fonts in the styles instead (change `HEAD_FONT`, `BODY_FONT` and `MONO_FONT` in the script and rebuild under a new file name). Never embed fonts.
+The template's font table names each fallback (`altName`), so Word swaps it in when the brand font is missing. DM Sans, Aptos and IBM Plex Mono are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the styles because of it. When the file goes to readers outside DWD and must look the same everywhere, set the fallback fonts in the styles instead (change `HEAD_FONT`, `BODY_FONT` and `MONO_FONT` in the script and rebuild under a new file name). Never embed fonts.
 
 ## Page setup
 
@@ -49,7 +66,7 @@ US Letter, portrait, single column, 2.54 cm (1 inch) margins on all four sides. 
 
 Page 1 is the cover and uses its own header and footer ("different first page" is on).
 
-- Header, page 2 onward: the mark at left, which reads "DWD" (character style DW Mark: bold, #7a2e2e fill, font colour Automatic), a tab, then a `STYLEREF "Heading 1"` field that shows the current section. Rule below in #e3e1db.
+- Header, page 2 onward: the mark at left, which reads "DWD" (character style DW Mark: bold, #7a2e2e fill, font colour Automatic), a tab, then a `STYLEREF "Heading 1"` field that shows the current section. Rule below in #e3e1db. The mark may render dark on the fill outside Word (see Table recipe); that is expected.
 - Footer, page 2 onward: a `PAGE` field at right, nothing at left. Rule above in #e3e1db.
 - Cover header: empty. Cover footer: the date, style Cover Date, for example "November 2026".
 - Header and footer text is IBM Plex Mono 8pt, caps, letter spacing 0.08em, #6f6b64. This comes from the Header and Footer styles; do not format it by hand.
@@ -59,30 +76,37 @@ Write each Heading 1 as number, space, hyphen, space, name ("2 - Methods") so th
 ## Cover page recipe
 
 1. Cover Eyebrow: "Data With Dillon". Its space before puts the block about one third down the page.
-2. Title: the document title. Its right indent keeps it to about 9 characters per line; keep titles short.
+2. Title: the document title. Its right indent keeps it to about 9 characters per line. Titles over about 20 characters wrap to three lines, so shorten them.
 3. Subtitle: one line on what the document is.
-4. Put the date in the first-page footer (style Cover Date).
+4. Put the date in the first-page footer, `doc.sections[0].first_page_footer.paragraphs[0]` (style Cover Date). The template holds the placeholder "Month Year" there, which prints as "MONTH YEAR" if you do not replace it.
 5. Start the first Heading 1 on page 2 with `paragraph_format.page_break_before = True`. Do not add an empty paragraph or a page break run.
 
-The 6px #7a2e2e bar on the left edge is a first-page-only left page border in the template. Keep it; do not draw a shape.
+The 6px #7a2e2e bar on the left edge is a first-page-only left page border in the template. Keep it; do not draw a shape. LibreOffice may repeat it on later odd pages; Word does not. Leave it as is.
 
 ## Table recipe
 
-1. Add the table and set `table.style = "DWD Table"`. Row 1 is the header row: #7a2e2e fill, bold text in font colour Automatic, repeats on each page.
+1. Add the table and set `table.style = "DWD Table"`. Row 1 is the header row: #7a2e2e fill, bold text in font colour Automatic, repeats on each page. Also set `w:tblHeader` on row 1 yourself (`build_word.py` `add_table` shows how); do not rely on the style alone.
 2. Body rows get a 1px #e3e1db rule below; there are no vertical rules. Cell padding is built in.
 3. Left align the first column and every header cell. Right align number columns in the body rows.
 4. Put a Caption paragraph under the table: "Table 1. Orders by quarter".
 5. Keep one header row. Do not merge cells or add fills to body rows.
 
-On a #7a2e2e fill, set the font colour to Automatic (`w:color w:val="auto"`), never fixed white. Word then shows white text on the oxblood fill, and dark text when Word dark mode lightens the fill, so the text stays readable in both.
+On a #7a2e2e fill, set the font colour to Automatic (`w:color w:val="auto"`), never fixed white. Word then shows white text on the oxblood fill, and dark text when Word dark mode lightens the fill, so the text stays readable in both. LibreOffice, Google Docs and docx-to-PDF converters show dark text on the oxblood fill; Word shows white. This is expected. Do not "fix" it by setting a fixed colour.
 
 ## Callout recipe
 
-One short paragraph in style Callout for the one thing a reader must take away from a section. No fill, no box, no icon, no bold text inside. At most one callout per page.
+One short paragraph in style Callout for the one thing a reader must take away from a section. No fill, no box, no icon, no bold text inside. At most one callout per Heading 1 section.
 
 ## Lists
 
-List Bullet gives the #7a2e2e square bullet with the text indented 22px and 6px between items. List Number gives #7a2e2e numbers with the same spacing. Use List Number only for steps or ranked items. To restart numbering, add a new `w:num` that points at the same `w:abstractNum` with a `w:lvlOverride`/`w:startOverride` of 1 and use its id in the paragraph's `numPr`. Keep lists one level deep.
+List Bullet gives the #7a2e2e square bullet with the text indented 22px and 6px between items. List Number gives #7a2e2e numbers with the same spacing. Use List Number only for steps or ranked items. The bullet num id is 90 and the number num id is 91 (each points at the abstractNum of the same id). Keep lists one level deep. To restart numbering, add a new `w:num` and put its numId on each paragraph of the new list:
+
+```python
+num = doc.part.numbering_part.element.add_num(91)
+num.add_lvlOverride(ilvl=0).add_startOverride(1)
+p = doc.add_paragraph("First step", style="List Number")
+p._p.get_or_add_pPr().get_or_add_numPr().get_or_add_numId().val = num.numId
+```
 
 ## Charts
 
@@ -97,9 +121,11 @@ The template's theme colours are the brand series, so a chart made in Word picks
 
 For ordered data use the sequential series and for above/below data the diverging series, both in brand.md. Axis lines 1px #6f6b64. Label every chart with a Caption paragraph ("Figure 1. Repeat share by month"). Insert charts as PNG at the text width (6.5 in).
 
+With matplotlib: figure 6.5 by 3.25 in, 200 dpi, transparent background, labels 8pt in #6f6b64, axis lines 1px (0.75pt) #6f6b64, no top or right spines, series colours in the order above. Insert with `doc.add_picture(path, width=Inches(6.5))`, then add a Caption paragraph. Leaving the picture paragraph in Normal is fine. `chart_png` in `build_word.py` is a worked example.
+
 ## Voice
 
-Pick the voice for each document as brand.md's Voice section says. Ask when the occasion is unclear.
+Pick the voice for each document as brand.md's Voice section says. When nobody is there to ask, default to neutral third person; ask only when an operator is available.
 
 ## Checklist before sending
 
@@ -107,7 +133,9 @@ Pick the voice for each document as brand.md's Voice section says. Ask when the 
 - Cover has eyebrow, title, subtitle and date; the first Heading 1 starts page 2.
 - Headings go H1, H2, H3 in order with no skipped level; each H1 reads "N - Name".
 - Every table uses DWD Table and has a caption; numbers are right aligned.
-- At most one callout per page.
+- At most one callout per Heading 1 section.
 - Chart colours follow the order above.
-- Fields updated (Ctrl+A, F9 in Word) so the header shows the right section.
+- Header field set: write the first Heading 1 text into the STYLEREF field's cached run (as `set_header_footer` in `build_word.py` does). The template's updateFields setting makes Word and LibreOffice refresh STYLEREF and PAGE on open. If you skip this, any viewer that trusts the cached text shows "1 - Section".
+- Cover date replaced; "Month Year" is gone.
+- `python scripts/check_docx.py your-file.docx` prints PASS on every line.
 - File name has no spaces, for example `dwd-quarterly-sales-review.docx`.
