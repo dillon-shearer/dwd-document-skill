@@ -8,6 +8,9 @@ import tempfile
 from html.parser import HTMLParser
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dwd_prose
+
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "dwd-report.html"
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 BRAND_HEX = {
@@ -22,6 +25,7 @@ WIDTH_RE = re.compile(r"^width:\s*\d+(\.\d+)?%;?$")
 BARE_AMP_RE = re.compile(r"&(?![A-Za-z][A-Za-z0-9]*;|#[0-9]+;|#[xX][0-9a-fA-F]+;)")
 LABELS = ("Note:", "Key point:", "Warning:")
 FONTS_CSS = "https://fonts.googleapis.com/css"
+PROSE_SKIP = {"head", "script", "style", "pre", "code", "kbd", "samp", "svg"}
 PRECONNECTS = {"https://fonts.googleapis.com", "https://fonts.gstatic.com"}
 
 
@@ -435,6 +439,16 @@ def check_escapes(doc):
     return bad, "no bare & and no < in text"
 
 
+def prose_items(el, skip=False):
+    for c in el.elements():
+        off = skip or c.tag in PROSE_SKIP
+        if not off:
+            text = " ".join(x for x in c.children if isinstance(x, str))
+            if not (c.tag in ("td", "th") and dwd_prose.is_data(text)):
+                yield f"line {c.line} <{c.tag}>", text
+        yield from prose_items(c, off)
+
+
 CHECKS = [
     ("encoding", check_encoding),
     ("head", check_head),
@@ -510,6 +524,7 @@ def main(argv):
             print(f"FAIL {name}: " + "; ".join(bad))
         else:
             print(f"PASS {name}: {ok}")
+    failed = dwd_prose.report(dwd_prose.scan(prose_items(doc.tree.root)), "body text") or failed
     status, detail = print_render(path)
     print(f"{status} print-render: {detail}")
     failed = failed or status == "FAIL"

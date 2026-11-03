@@ -118,7 +118,7 @@ Aptos 11pt, line height 1.15, `--ink`, paragraphs `margin: 0 0 0.6em`. Links in 
 
 ## Voice
 
-The default is neutral third person, as [brand.md](brand.md) says. The request overrides it: when it asks for a voice, or the occasion clearly calls for another option in brand.md, use that. Ask only when an operator is available to answer. Keep one voice throughout.
+Voice and prose: follow the Writing section in brand.md.
 
 ## Checklist before sending
 
@@ -141,5 +141,5 @@ Each line is one `scripts/check_html.py` check unless marked human-only.
 15. No bare `&`, no `<` in text.
 16. print-render (when Chrome or Edge is installed): the file prints to PDF and the page count looks right.
 17. Human-only: print preview shows the cover alone on page 1, each section on a new page, page numbers from page 2, and no table split mid-row.
-18. Human-only: neutral third person throughout, dates as `3 November 2026`, every chart has a text or table equivalent.
+18. Human-only: one voice throughout, dates as `3 November 2026`, every chart has a text or table equivalent.
 19. `python scripts/check_html.py file.html` passes.

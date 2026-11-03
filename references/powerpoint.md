@@ -139,7 +139,7 @@ Applies: palette, typography, chart palettes, voice, lists, callouts. Does not a
 
 ## Voice
 
-Pick the voice for each deck as brand.md's Voice section says. When nobody is there to ask, default to neutral third person; ask only when an operator is available.
+Voice and prose: follow the Writing section in brand.md.
 
 ## Checklist before sending
 

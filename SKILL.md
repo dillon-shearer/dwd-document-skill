@@ -37,3 +37,6 @@ the output.
    blank file.
 4. Where a format file and `brand.md` disagree, the format file wins for that
    format.
+
+Writing rules (voice, punctuation, banned words) live in `brand.md` and apply to
+every format.

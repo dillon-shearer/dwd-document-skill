@@ -3,6 +3,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dwd_prose
+
 try:
     import pptx
 except ImportError:
@@ -197,6 +200,27 @@ def check_name(path):
     return True, f"file name '{path.name}' has no spaces"
 
 
+def prose_shapes(shapes):
+    for s in shapes:
+        if s.shape_type == MSO_SHAPE_TYPE.GROUP:
+            yield from prose_shapes(s.shapes)
+        elif s.has_text_frame:
+            yield s.text_frame.text
+        elif getattr(s, "has_table", False) and s.has_table:
+            for row in s.table.rows:
+                for cell in row.cells:
+                    if not dwd_prose.is_data(cell.text):
+                        yield cell.text
+
+
+def prose_items(prs):
+    for i, slide in enumerate(prs.slides, 1):
+        for text in prose_shapes(slide.shapes):
+            yield f"slide {i}", text
+        if slide.has_notes_slide:
+            yield f"slide {i} notes", slide.notes_slide.notes_text_frame.text
+
+
 def main():
     if len(sys.argv) != 2:
         print("usage: python scripts/check_deck.py path/to/file.pptx")
@@ -220,6 +244,7 @@ def main():
         ok, detail = fn()
         print(f"{'PASS' if ok else 'FAIL'} {name}: {detail}")
         failed = failed or not ok
+    failed = dwd_prose.report(dwd_prose.scan(prose_items(prs)), "slide text and notes") or failed
     return 1 if failed else 0
 
 

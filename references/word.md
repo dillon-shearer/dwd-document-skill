@@ -125,7 +125,7 @@ With matplotlib: figure 6.5 by 3.25 in, 200 dpi, transparent background, labels 
 
 ## Voice
 
-Pick the voice for each document as brand.md's Voice section says. When nobody is there to ask, default to neutral third person; ask only when an operator is available.
+Voice and prose: follow the Writing section in brand.md.
 
 ## Checklist before sending
 
