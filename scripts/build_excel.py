@@ -102,17 +102,21 @@ def build_orders(wb):
 
 def build_notes(wb):
     ws = new_sheet(wb, "Notes", "Notes on the data", "Sources, definitions and known gaps for this workbook", date(2026, 11, 3))
-    set_widths(ws, [24, 40])
+    set_widths(ws, [24, 60])
     add_table(
-        ws, ["Topic", "Note"],
+        ws, ["Label", "Note"],
         [
+            ["Key point", "Online grew fastest in 2026 and passed 2,000 orders in Q4."],
             ["Source", "Order system export taken on 2 November 2026, all channels, net of cancellations."],
             ["Returns", "Returned orders are counted in the quarter of the return and shown as negative values."],
             ["Wholesale", "The wholesale channel opened in April 2026, so Q1 is a true zero, not missing data."],
             ["Revenue", "Revenue is in US dollar millions at list price before discounts, rounded to one decimal."],
+            ["Step 1", "Export the order lines from the order system for the period."],
+            ["Step 2", "Run scripts/build_excel.py to rebuild the sheets from the export."],
+            ["Quote", "\"Returns are booked when the item reaches the warehouse.\" Finance team, October 2026"],
         ],
         ["DWD Text", "DWD Text Wrap"],
-        caption="Table 2. Sources and definitions",
+        caption="Table 2. Notes",
     )
 
 

@@ -127,6 +127,27 @@ Portrait, US Letter, 1 inch margins, fit to one page wide. Row 6 repeats on each
 
 Name sheets in one or two plain words ("Orders", "Notes"), no default "Sheet1" in a sent file. Each sheet gets the title block. For a second sheet use `new_sheet`; never `copy_worksheet`, which drops the sheet view, the header and footer and the print titles.
 
+## Notes sheet
+
+Prose that is not tabular data (sources, definitions, callouts, lists, quotes, a summary) goes on a sheet named Notes, as one two-column table and nothing else:
+
+- Heads `["Label", "Note"]`, styles `["DWD Text", "DWD Text Wrap"]`, widths `[24, 60]` (the one place a text column is wider than 40), caption "Table N. Notes".
+- One item per row, with its label in column A:
+  - `Note`, `Key point` or `Warning` for a callout. At most one `Key point` per sheet.
+  - `Step 1`, `Step 2`, ... for a numbered list, in order from 1.
+  - A short topic word or two for a bullet item ("Source", "Returns").
+  - `Quote` for a quote: the quote text in straight quotes, then the source, in the Note cell.
+  - `Summary` for a summary paragraph.
+- No merged cells, no blank rows, no text outside the table.
+
+```python
+ws = d.new_sheet(wb, "Notes", "Notes on the data", "Sources, definitions and known gaps", date(2026, 11, 3))
+d.set_widths(ws, [24, 60])
+d.add_table(ws, ["Label", "Note"], [["Key point", "Online grew fastest."], ["Source", "Order system export."],
+    ["Step 1", "Export the order lines."], ["Quote", '"Returns are booked on arrival." Finance team']],
+    ["DWD Text", "DWD Text Wrap"], caption="Table 2. Notes")
+```
+
 ## Wide sheets
 
 The default is one table per sheet, portrait, one page wide. These exceptions are allowed; state each in the subtitle or caption:
@@ -162,6 +183,7 @@ Each line is one `check_xlsx.py` check unless marked human.
 - Every sheet: freeze pane at A7 or B7, gridlines off, print titles row 6, one page wide, "DWD" in the print header.
 - Every table has a "Table N." caption; every chart has a "Figure N." caption below it.
 - Chart series use brand colours; no chart titles.
+- A Notes sheet holds one table; column A labels are Note, Key point, Warning, Summary, Quote, Step N or a one or two word topic; Step rows run in order from 1; at most one Key point.
 - `fullCalcOnLoad` is set when the workbook holds formulas.
 - No sheet named Sheet or Sheet1; file name has no spaces, for example `dwd-orders-by-region.xlsx`.
 - Human: the palette fits the data (sequential for ordered, diverging for signed), blanks mean missing, sources and units are stated.
