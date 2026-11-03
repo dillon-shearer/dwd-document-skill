@@ -14,6 +14,7 @@ format.
 - `references/brand.md`: the brand rules every format shares.
 - `references/word.md`: rules for Word documents (.docx).
 - `references/powerpoint.md`: rules for PowerPoint decks (.pptx).
+- `references/markdown.md`: rules for Markdown files (.md).
 - `assets/`: ready-made templates, where one exists.
 - `scripts/`: the scripts that build the templates.
 
@@ -27,7 +28,8 @@ format.
 1. Read `references/brand.md` in full.
 2. Read the one file under `references/` that matches the output format:
    [word.md](references/word.md) for Word,
-   [powerpoint.md](references/powerpoint.md) for PowerPoint.
+   [powerpoint.md](references/powerpoint.md) for PowerPoint,
+   [markdown.md](references/markdown.md) for Markdown.
 3. If a matching template exists under `assets/`, start from it instead of a
    blank file.
 4. Where a format file and `brand.md` disagree, the format file wins for that
