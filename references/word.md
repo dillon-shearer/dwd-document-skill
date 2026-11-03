@@ -66,7 +66,7 @@ US Letter, portrait, single column, 2.54 cm (1 inch) margins on all four sides. 
 
 Page 1 is the cover and uses its own header and footer ("different first page" is on).
 
-- Header, page 2 onward: the mark at left, which reads "DWD" (character style DW Mark: bold, #7a2e2e fill, font colour Automatic), a tab, then a `STYLEREF "Heading 1"` field that shows the current section. Rule below in #e3e1db. The mark may render dark on the fill outside Word (see Table recipe); that is expected.
+- Header, page 2 onward: the mark at left, which reads "DWD" (character style DW Mark: bold, #7a2e2e fill, font colour Automatic), a tab, then a `STYLEREF "Heading 1"` field that shows the current section. Rule below in #e3e1db. LibreOffice, Google Docs and docx-to-PDF converters can show Automatic text on the oxblood fill dark where Word shows it white; this is expected, so do not set a fixed colour.
 - Footer, page 2 onward: a `PAGE` field at right, nothing at left. Rule above in #e3e1db.
 - Cover header: empty. Cover footer: the date, style Cover Date, for example "November 2026".
 - Header and footer text is IBM Plex Mono 8pt, caps, letter spacing 0.08em, #6f6b64. This comes from the Header and Footer styles; do not format it by hand.
