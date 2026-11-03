@@ -40,6 +40,23 @@ Rules for writing a .md file (README, report, notes) in the DWD brand. Read [bra
 - First column names the row. Keep units in the header, not in each cell.
 - One line of bold text above the table as its label, for example `**Table 1. Revenue by quarter**`.
 
+## Figures
+
+A Markdown deliverable carries each chart as a PNG file saved next to the .md file. Never a data URI, never an ASCII chart in a code block, never HTML.
+
+- Make the PNG with matplotlib using the Word recipe, `chart_png` in `scripts/build_word.py`: 6.5 by 3.25 in, 200 dpi, transparent background, series in the brand chart order, 8pt tick and legend labels in `#6f6b64`, no top or right spines. Import it or copy its settings.
+- Name the file `<document-name>-figure-N.png` and save it in the same folder as the .md, for example `report-figure-1.png` beside `report.md`.
+- One line of bold text above the image as its label, like the table label: `**Figure 1. Orders by quarter**`, then a blank line, then the image.
+- Insert it as `![Figure 1. Orders by quarter](report-figure-1.png)`. The alt text repeats the label; it is never empty. The path is relative.
+- Number figures in order from 1, separately from tables.
+- Put a table with the same data near the figure, so the content survives when the image does not load.
+
+```text
+**Figure 1. Orders by quarter**
+
+![Figure 1. Orders by quarter](report-figure-1.png)
+```
+
 ## Callouts
 
 The brand callout is a left accent bar with no fill, so use a plain blockquote that starts with a bold label. Do not use GitHub `> [!NOTE]` alerts; they add colour and icons the brand does not have.
@@ -98,9 +115,10 @@ Voice and prose: follow the Writing section in brand.md.
 6. Headings have no trailing punctuation, bold or links.
 7. Bullets use `-`, never `*` or `+`.
 8. Every table has a bold `**Table N.**` label, a `---` or `---:` separator and no empty cells.
-9. Every code fence has a language tag.
-10. Callouts use `Note`, `Key point` or `Warning`, no `[!NOTE]` alerts, at most one per section.
-11. No HTML.
-12. Relative links resolve and `#fragment` links match a heading.
-13. Human only: one voice throughout, short paragraphs, descriptive link text, right-aligned number columns.
-14. `python scripts/check_md.py file.md` passes.
+9. Every chart is a PNG beside the file, `<document-name>-figure-N.png`, inserted as `![Figure N. Label](file)` under a bold `**Figure N.**` label numbered from 1, with a table of the same data nearby.
+10. Every code fence has a language tag.
+11. Callouts use `Note`, `Key point` or `Warning`, no `[!NOTE]` alerts, at most one per section.
+12. No HTML.
+13. Relative links resolve and `#fragment` links match a heading.
+14. Human only: one voice throughout, short paragraphs, descriptive link text, right-aligned number columns.
+15. `python scripts/check_md.py file.md` passes.
