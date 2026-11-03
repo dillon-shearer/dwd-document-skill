@@ -7,7 +7,7 @@
 <title>Repeat customers - DWD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
 <style>
 :root {
   color-scheme: light;
@@ -27,6 +27,18 @@
   --series-4: #4a6b3a;
   --series-5: #5a7a8a;
   --series-6: #5c3a1a;
+  --seq-1: #f3e7e4;
+  --seq-2: #dfbfb8;
+  --seq-3: #c4928a;
+  --seq-4: #a6635b;
+  --seq-5: #7a2e2e;
+  --seq-6: #5c2020;
+  --div-1: #7a2e2e;
+  --div-2: #b07a6e;
+  --div-3: #e3d3cc;
+  --div-4: #d4ddcb;
+  --div-5: #86a274;
+  --div-6: #4a6b3a;
   --font-heading: "DM Sans", "Segoe UI", system-ui, sans-serif;
   --font-body: Aptos, Calibri, Carlito, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Consolas, "Courier New", monospace;
@@ -49,7 +61,7 @@ body {
   padding: 2rem 1.5rem 3rem;
   background: var(--surface);
 }
-.doc-header, .doc-footer {
+.doc-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -59,8 +71,7 @@ body {
   letter-spacing: 0.08em;
   color: var(--ink-3);
 }
-.doc-header { padding-bottom: 8px; border-bottom: 1px solid var(--rule); margin-bottom: 2rem; }
-.doc-footer { justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--rule); margin-top: 3rem; }
+.doc-header { padding-bottom: 8px; border-bottom: 1px solid var(--rule); margin-bottom: 2rem; break-before: page; break-after: avoid; }
 .mark {
   display: inline-flex;
   align-items: center;
@@ -113,11 +124,26 @@ h1, h2, h3 {
   break-after: avoid;
 }
 h1 { font-size: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--ink-3); margin-bottom: 8px; }
+.doc-header + h1 { margin-top: 0; }
 h2 { font-size: 20px; }
 h3 { font-size: 15px; }
 p { margin: 0 0 0.6em; }
 a { color: var(--accent); }
 a:hover { color: var(--accent-hover); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: 10pt; background: var(--accent-soft); padding: 0 3px; }
+pre {
+  font-family: var(--font-mono);
+  font-size: 9.5pt;
+  line-height: 1.35;
+  background: var(--accent-soft);
+  padding: 8px 12px;
+  border: 0;
+  margin: 0.4em 0 1em;
+  overflow-x: auto;
+  break-inside: avoid;
+}
+pre code { font-size: inherit; background: none; padding: 0; }
 ul { list-style: none; margin: 0 0 0.8em; padding: 0; }
 ul li { position: relative; padding-left: 22px; margin-bottom: 6px; }
 ul li::before {
@@ -129,6 +155,7 @@ ul li::before {
   height: 6px;
   background: var(--accent);
 }
+li > ul { margin: 6px 0 0; }
 ol { margin: 0 0 0.8em; padding-left: 22px; }
 ol li { margin-bottom: 6px; }
 ol li::marker { color: var(--accent); font-weight: 700; }
@@ -137,8 +164,8 @@ table {
   border-collapse: collapse;
   margin: 0.4em 0 1.2em;
   font-variant-numeric: tabular-nums;
-  break-inside: avoid;
 }
+table.short { break-inside: avoid; }
 th {
   background: var(--accent);
   color: var(--on-accent);
@@ -156,6 +183,7 @@ tr { break-inside: avoid; }
   margin: 1em 0;
   line-height: 1.45;
   color: var(--ink);
+  break-inside: avoid;
 }
 .callout strong { color: var(--accent); }
 blockquote {
@@ -164,16 +192,19 @@ blockquote {
   font-style: italic;
   color: var(--ink-2);
   line-height: 1.35;
+  break-inside: avoid;
 }
 blockquote p { margin: 0 0 0.4em; }
 blockquote footer { font-style: normal; font-family: var(--font-mono); font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
 figure { margin: 1.2em 0; break-inside: avoid; }
 figcaption.caption { margin-bottom: 8px; }
+figure svg { display: block; width: 100%; height: auto; }
 .bar-chart { display: grid; gap: 8px; padding: 4px 0; }
 .bar-row { display: grid; grid-template-columns: 7rem 1fr; align-items: center; gap: 8px; }
 .bar-label { text-align: right; font-size: 10pt; color: var(--ink-2); padding-right: 4px; }
-.bar-track { height: 22px; border-left: 1px solid var(--ink-3); }
-.bar { height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: var(--on-accent); font-family: var(--font-mono); font-size: 8pt; }
+.bar-track { height: 22px; border-left: 1px solid var(--ink-3); display: flex; align-items: center; }
+.bar { height: 100%; flex: none; }
+.bar-value { flex: none; margin-left: 6px; color: var(--ink-2); font-family: var(--font-mono); font-size: 8pt; }
 .bar.s1 { background: var(--series-1); }
 .bar.s2 { background: var(--series-2); }
 .bar.s3 { background: var(--series-3); }
@@ -200,9 +231,9 @@ figcaption.caption { margin-bottom: 8px; }
   .page { max-width: none; margin: 0; padding: 0; }
   .no-print, nav { display: none !important; }
   .cover { min-height: calc(11in - 5.08cm); margin-bottom: 0; padding-top: 30%; break-after: page; }
-  .doc-footer { display: none; }
   h1, h2, h3, .caption { break-after: avoid; }
   p, li, blockquote, .callout { orphans: 3; widows: 3; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; overflow: visible; }
   a { color: var(--ink); text-decoration: none; }
 }
 </style>
@@ -218,28 +249,47 @@ figcaption.caption { margin-bottom: 8px; }
 
   <header class="doc-header">
     <span class="mark">DWD</span>
+    <span>1 - Summary</span>
+  </header>
+
+  <h1 id="s1">1. Summary</h1>
+  <p>Twelve months of sales data show that <strong>repeat customers drive most of the growth</strong>. First-time buyers held steady, while people who had bought before spent more and came back sooner. The weekly detail is in <a href="#s4">section 4</a>.</p>
+  <p>The store grew faster than the national e-commerce trend reported in the <a href="https://www.census.gov/retail/index.html">US Census Bureau quarterly retail survey</a>, <em>even before</em> the second-half changes took effect.</p>
+  <ul>
+    <li>Revenue rose in every quarter.
+      <ul>
+        <li>Q3 revenue was 22% above Q1.</li>
+        <li>Repeat customers supplied 61% of Q3 revenue.</li>
+      </ul>
+    </li>
+    <li>Email brought in more revenue than any other channel.</li>
+    <li>Three changes explain most of the shift; section 2 lists them.</li>
+  </ul>
+  <div class="callout"><strong>Note:</strong> All revenue figures are in thousands of US dollars before tax.</div>
+
+  <header class="doc-header">
+    <span class="mark">DWD</span>
     <span>2 - Findings</span>
   </header>
 
-  <h1>2. Findings</h1>
-  <p>Twelve months of sales data show that repeat customers drive most of the growth. First-time buyers held steady, while people who had bought before spent more and came back sooner.</p>
-  <p>This section sets out the main numbers by quarter, then looks at what changed in the second half of the year.</p>
+  <h1 id="s2">2. Findings</h1>
+  <p>This section sets out the main numbers by customer segment, then looks at what changed in the second half of the year.</p>
 
-  <h2>Revenue by quarter</h2>
-  <p>Revenue grew in every quarter. The share from repeat customers rose from just under half to nearly two thirds.</p>
-  <div class="caption">Table 1. Revenue by quarter</div>
-  <table>
+  <h2>Revenue by segment</h2>
+  <p>Returning customers produced the most revenue from the fewest people. Wholesale revenue is missing for the year because those orders were invoiced outside the store.</p>
+  <div class="caption" id="t1">Table 1. Revenue by customer segment, 2026</div>
+  <table class="short" aria-labelledby="t1">
     <thead>
-      <tr><th>Quarter</th><th class="num">Revenue ($k)</th><th class="num">Orders</th><th class="num">Repeat share</th></tr>
+      <tr><th scope="col">Segment</th><th scope="col" class="num">Customers</th><th scope="col" class="num">Revenue ($k)</th><th scope="col" class="num">Repeat share</th></tr>
     </thead>
     <tbody>
-      <tr><td>Q1</td><td class="num">412</td><td class="num">3,180</td><td class="num">48%</td></tr>
-      <tr><td>Q2</td><td class="num">455</td><td class="num">3,420</td><td class="num">54%</td></tr>
-      <tr><td>Q3</td><td class="num">501</td><td class="num">3,610</td><td class="num">61%</td></tr>
+      <tr><td>New</td><td class="num">2,140</td><td class="num">386</td><td class="num">n/a</td></tr>
+      <tr><td>Returning</td><td class="num">1,320</td><td class="num">512</td><td class="num">61%</td></tr>
+      <tr><td>Wholesale</td><td class="num">48</td><td class="num">-</td><td class="num">33%</td></tr>
     </tbody>
   </table>
 
-  <div class="callout"><strong>Key point:</strong> Figures exclude refunds issued after 30 June.</div>
+  <div class="callout"><strong>Key point:</strong> Figures exclude refunds issued after 30 June 2026.</div>
 
   <h3>What drove the change</h3>
   <ul>
@@ -250,21 +300,147 @@ figcaption.caption { margin-bottom: 8px; }
 
   <blockquote>
     <p>Most growth came from people who had bought before.</p>
-    <footer>Sales review, Q2</footer>
+    <footer>Sales review, Q2 2026</footer>
   </blockquote>
 
+  <header class="doc-header">
+    <span class="mark">DWD</span>
+    <span>3 - Channels</span>
+  </header>
+
+  <h1 id="s3">3. Channels</h1>
+  <p>Email led every other channel in Q3, and the repeat share climbed in every month of the year.</p>
+
+  <h2>Revenue by channel</h2>
   <figure>
-    <figcaption class="caption">Figure 1. Revenue by channel, Q3 ($k)</figcaption>
-    <div class="bar-chart" role="img" aria-label="Bar chart of Q3 revenue by channel">
-      <div class="bar-row"><span class="bar-label">Email</span><div class="bar-track"><div class="bar s1" style="width: 92%">184</div></div></div>
-      <div class="bar-row"><span class="bar-label">Search</span><div class="bar-track"><div class="bar s2" style="width: 70%">140</div></div></div>
-      <div class="bar-row"><span class="bar-label">Social</span><div class="bar-track"><div class="bar s3" style="width: 48%">96</div></div></div>
-      <div class="bar-row"><span class="bar-label">Direct</span><div class="bar-track"><div class="bar s4" style="width: 41%">81</div></div></div>
+    <figcaption class="caption">Figure 1. Revenue by channel, Q3 2026 ($k)</figcaption>
+    <div class="bar-chart" role="img" aria-label="Bar chart of Q3 revenue by channel: Email 184, Search 140, Social 96, Direct 81, Referral 58, Partner 37">
+      <div class="bar-row"><span class="bar-label">Email</span><div class="bar-track"><div class="bar s1" style="width: 92%"></div><span class="bar-value">184</span></div></div>
+      <div class="bar-row"><span class="bar-label">Search</span><div class="bar-track"><div class="bar s2" style="width: 70%"></div><span class="bar-value">140</span></div></div>
+      <div class="bar-row"><span class="bar-label">Social</span><div class="bar-track"><div class="bar s3" style="width: 48%"></div><span class="bar-value">96</span></div></div>
+      <div class="bar-row"><span class="bar-label">Direct</span><div class="bar-track"><div class="bar s4" style="width: 41%"></div><span class="bar-value">81</span></div></div>
+      <div class="bar-row"><span class="bar-label">Referral</span><div class="bar-track"><div class="bar s5" style="width: 29%"></div><span class="bar-value">58</span></div></div>
+      <div class="bar-row"><span class="bar-label">Partner</span><div class="bar-track"><div class="bar s6" style="width: 19%"></div><span class="bar-value">37</span></div></div>
     </div>
     <div class="chart-axis"><span>0</span><span>50</span><span>100</span><span>150</span><span>200</span></div>
   </figure>
+  <p>In Q3, email brought in $184k, search $140k, social $96k, direct $81k, referral $58k and partner sites $37k.</p>
 
-  <footer class="doc-footer">2</footer>
+  <h2>Repeat share by month</h2>
+  <figure>
+    <figcaption class="caption">Figure 2. Repeat share of revenue by month, 2026 (%)</figcaption>
+    <svg viewBox="0 0 600 220" role="img" aria-labelledby="f2-title f2-desc">
+      <title id="f2-title">Repeat share of revenue by month, 2026</title>
+      <desc id="f2-desc">Line chart. January 44, February 45, March 47, April 48, May 51, June 54, July 56, August 58, September 60, October 61, November 62, December 63 percent.</desc>
+      <line x1="40" y1="190" x2="560" y2="190" stroke="#6f6b64" stroke-width="1"/>
+      <line x1="40" y1="10" x2="40" y2="190" stroke="#6f6b64" stroke-width="1"/>
+      <polyline fill="none" stroke="#7a2e2e" stroke-width="2.5" points="50,166 95,160 140,148 185,142 230,124 275,106 320,94 365,82 410,70 455,64 500,58 545,52"/>
+      <g font-family="IBM Plex Mono, ui-monospace, Consolas, monospace" font-size="10" fill="#6f6b64">
+        <text x="34" y="194" text-anchor="end">40</text>
+        <text x="34" y="134" text-anchor="end">50</text>
+        <text x="34" y="74" text-anchor="end">60</text>
+        <text x="34" y="14" text-anchor="end">70</text>
+        <text x="50" y="206" text-anchor="middle">JAN</text>
+        <text x="185" y="206" text-anchor="middle">APR</text>
+        <text x="320" y="206" text-anchor="middle">JUL</text>
+        <text x="455" y="206" text-anchor="middle">OCT</text>
+        <text x="545" y="206" text-anchor="middle">DEC</text>
+      </g>
+      <text x="545" y="44" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, Consolas, monospace" font-size="10" fill="#44403b">63%</text>
+    </svg>
+  </figure>
+  <p>The repeat share rose from 44% in January to 63% in December, with the steepest climb between April and June.</p>
+
+  <header class="doc-header">
+    <span class="mark">DWD</span>
+    <span>4 - Weekly orders</span>
+  </header>
+
+  <h1 id="s4">4. Weekly orders</h1>
+  <p>Table 2 lists orders, revenue and repeat share for the first thirty weeks of the year. The header row repeats on each printed page.</p>
+  <div class="caption" id="t2">Table 2. Orders by week, weeks 1 to 30, 2026</div>
+  <table aria-labelledby="t2">
+    <thead>
+      <tr><th scope="col">Week</th><th scope="col" class="num">Orders</th><th scope="col" class="num">Revenue ($k)</th><th scope="col" class="num">Repeat share</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Week 1</td><td class="num">797</td><td class="num">106.5</td><td class="num">45%</td></tr>
+      <tr><td>Week 2</td><td class="num">811</td><td class="num">109.7</td><td class="num">47%</td></tr>
+      <tr><td>Week 3</td><td class="num">800</td><td class="num">109.5</td><td class="num">45%</td></tr>
+      <tr><td>Week 4</td><td class="num">786</td><td class="num">103.8</td><td class="num">47%</td></tr>
+      <tr><td>Week 5</td><td class="num">792</td><td class="num">105.8</td><td class="num">48%</td></tr>
+      <tr><td>Week 6</td><td class="num">824</td><td class="num">111.4</td><td class="num">47%</td></tr>
+      <tr><td>Week 7</td><td class="num">863</td><td class="num">117.8</td><td class="num">48%</td></tr>
+      <tr><td>Week 8</td><td class="num">885</td><td class="num">116.8</td><td class="num">50%</td></tr>
+      <tr><td>Week 9</td><td class="num">880</td><td class="num">117.5</td><td class="num">48%</td></tr>
+      <tr><td>Week 10</td><td class="num">864</td><td class="num">116.6</td><td class="num">50%</td></tr>
+      <tr><td>Week 11</td><td class="num">863</td><td class="num">117.8</td><td class="num">51%</td></tr>
+      <tr><td>Week 12</td><td class="num">888</td><td class="num">117.2</td><td class="num">50%</td></tr>
+      <tr><td>Week 13</td><td class="num">928</td><td class="num">123.8</td><td class="num">51%</td></tr>
+      <tr><td>Week 14</td><td class="num">957</td><td class="num">128.9</td><td class="num">53%</td></tr>
+      <tr><td>Week 15</td><td class="num">959</td><td class="num">130.5</td><td class="num">51%</td></tr>
+      <tr><td>Week 16</td><td class="num">944</td><td class="num">124.6</td><td class="num">53%</td></tr>
+      <tr><td>Week 17</td><td class="num">936</td><td class="num">124.9</td><td class="num">54%</td></tr>
+      <tr><td>Week 18</td><td class="num">954</td><td class="num">128.5</td><td class="num">53%</td></tr>
+      <tr><td>Week 19</td><td class="num">992</td><td class="num">134.8</td><td class="num">54%</td></tr>
+      <tr><td>Week 20</td><td class="num">1,027</td><td class="num">135.6</td><td class="num">56%</td></tr>
+      <tr><td>Week 21</td><td class="num">1,037</td><td class="num">138.2</td><td class="num">54%</td></tr>
+      <tr><td>Week 22</td><td class="num">1,024</td><td class="num">137.8</td><td class="num">56%</td></tr>
+      <tr><td>Week 23</td><td class="num">1,011</td><td class="num">137.4</td><td class="num">57%</td></tr>
+      <tr><td>Week 24</td><td class="num">1,021</td><td class="num">134.8</td><td class="num">56%</td></tr>
+      <tr><td>Week 25</td><td class="num">1,057</td><td class="num">140.8</td><td class="num">57%</td></tr>
+      <tr><td>Week 26</td><td class="num">1,094</td><td class="num">147.0</td><td class="num">59%</td></tr>
+      <tr><td>Week 27</td><td class="num">1,112</td><td class="num">150.7</td><td class="num">57%</td></tr>
+      <tr><td>Week 28</td><td class="num">1,104</td><td class="num">145.7</td><td class="num">59%</td></tr>
+      <tr><td>Week 29</td><td class="num">1,089</td><td class="num">145.0</td><td class="num">60%</td></tr>
+      <tr><td>Week 30</td><td class="num">1,091</td><td class="num">146.6</td><td class="num">59%</td></tr>
+    </tbody>
+  </table>
+
+  <header class="doc-header">
+    <span class="mark">DWD</span>
+    <span>5 - Method</span>
+  </header>
+
+  <h1 id="s5">5. Method</h1>
+  <p>The analysis used the store's order export for 1 January to 31 December 2026. A customer counts as returning when the <code>order_count</code> field is above one.</p>
+
+  <h2>Steps</h2>
+  <ol>
+    <li>Export all orders and drop test and cancelled orders.</li>
+    <li>Group orders by customer and count them.</li>
+    <li>Sum revenue by segment, channel and week.</li>
+  </ol>
+
+  <h2>Query</h2>
+  <p>The returning-customer revenue came from this query:</p>
+  <pre><code>SELECT customer_id, COUNT(*) AS order_count, SUM(total) AS revenue
+FROM orders
+WHERE status = 'paid' AND order_date &gt;= '2026-01-01'
+GROUP BY customer_id
+HAVING COUNT(*) &gt; 1;</code></pre>
+
+  <h3>Chart colours</h3>
+  <figure>
+    <figcaption class="caption">Figure 3. Categorical series colours in brand order</figcaption>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAAQCAIAAABSoSyyAAAAUklEQVR42u3QMRGAMAAEsOqoiO6UjbESOBzUQR2AIuTh4VdyFwUpq7XYOLbYe++xMXvsXE/s6jVWRIsWLVq0aNGiRYsWLVq0aNGiRYsWLfrf0R+ed5lqp2CaGwAAAABJRU5ErkJggg==" width="240" height="32" alt="Six colour swatches: oxblood, dark brown-grey, ochre, green, slate blue and dark brown">
+  </figure>
+  <p>The swatches show the six chart series in order: oxblood, dark brown-grey, ochre, green, slate blue and dark brown.</p>
+
+  <div class="callout"><strong>Warning:</strong> Week 30 includes two days of a site outage, so its orders may be slightly low.</div>
+
+  <header class="doc-header">
+    <span class="mark">DWD</span>
+    <span>6 - Next steps</span>
+  </header>
+
+  <h1 id="s6">6. Next steps</h1>
+  <p>Three follow-ups would test whether the gains hold.</p>
+  <ul>
+    <li>Repeat the analysis for Q4 2026 once refunds close.</li>
+    <li>Test the loyalty email at two and six weeks.</li>
+    <li>Track wholesale revenue in the store so it can be reported.</li>
+  </ul>
 </div>
 </body>
 </html>
