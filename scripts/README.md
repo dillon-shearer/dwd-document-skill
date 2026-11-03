@@ -25,7 +25,7 @@ Checks a finished .docx against `references/word.md`. Run it with the file as th
 
     python scripts/check_docx.py path/to/file.docx
 
-It prints one PASS or FAIL line per check and exits 1 on any FAIL. It checks that the file started from the template (every DWD style is defined), that no body run has a direct font, size or colour, that each Heading 1 reads "N - Name", that heading levels never skip, that every table uses DWD Table, has a Caption after it and marks row 1 as a header row, that number cells in body rows are right aligned, that the file name has no spaces, and that the cover date and header section text are not the template's "Month Year" and "1 - Section". It needs python-docx and installs it with pip if missing. `check.py` at the repo root runs it on `assets/dwd-sample.docx`.
+It prints one PASS or FAIL line per check and exits 1 on any FAIL. It checks that the file started from the template (every DWD style is defined), that no body run has a direct font, size or colour, that no word in a Title paragraph is longer than the 13 characters the Title box holds on one line (`TITLE_CHARS`, kept beside `TITLE_RIGHT_IND`, which `build_word.py` imports for the Title style), that each Heading 1 reads "N - Name", that heading levels never skip, that every table uses DWD Table, has a Caption after it and marks row 1 as a header row, that number cells in body rows are right aligned, that the file name has no spaces, and that the cover date and header section text are not the template's "Month Year" and "1 - Section". It needs python-docx and installs it with pip if missing. `check.py` at the repo root runs it on `assets/dwd-sample.docx`.
 
 ## build_powerpoint.py
 
