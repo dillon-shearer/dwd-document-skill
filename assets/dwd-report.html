@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Repeat customers - DWD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --paper: #fafaf8;
+  --surface: #ffffff;
+  --ink: #111110;
+  --ink-2: #44403b;
+  --ink-3: #6f6b64;
+  --rule: #e3e1db;
+  --accent: #7a2e2e;
+  --accent-hover: #5c2020;
+  --accent-soft: #f3e7e4;
+  --on-accent: #ffffff;
+  --series-1: #7a2e2e;
+  --series-2: #4a4239;
+  --series-3: #b8893b;
+  --series-4: #4a6b3a;
+  --series-5: #5a7a8a;
+  --series-6: #5c3a1a;
+  --font-heading: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: Aptos, Calibri, Carlito, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 11pt;
+  line-height: 1.15;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.page {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  background: var(--surface);
+}
+.doc-header, .doc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.doc-header { padding-bottom: 8px; border-bottom: 1px solid var(--rule); margin-bottom: 2rem; }
+.doc-footer { justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--rule); margin-top: 3rem; }
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 6px;
+  min-width: 28px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 9pt;
+  letter-spacing: 0.04em;
+}
+.cover {
+  position: relative;
+  min-height: 70vh;
+  padding: 22vh 0 2rem 2rem;
+  margin-bottom: 3rem;
+  border-left: 6px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+}
+.eyebrow, .cover-date, .caption {
+  font-family: var(--font-mono);
+  font-size: 8pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.cover-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 44pt;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  max-width: 9ch;
+  margin: 0.4em 0 0.3em;
+}
+.cover-subtitle { font-size: 14pt; color: var(--ink-2); margin: 0; }
+.cover-date { margin-top: auto; padding-top: 4rem; }
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 1.4em 0 0.5em;
+  break-after: avoid;
+}
+h1 { font-size: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--ink-3); margin-bottom: 8px; }
+h2 { font-size: 20px; }
+h3 { font-size: 15px; }
+p { margin: 0 0 0.6em; }
+a { color: var(--accent); }
+a:hover { color: var(--accent-hover); }
+ul { list-style: none; margin: 0 0 0.8em; padding: 0; }
+ul li { position: relative; padding-left: 22px; margin-bottom: 6px; }
+ul li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.45em;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+}
+ol { margin: 0 0 0.8em; padding-left: 22px; }
+ol li { margin-bottom: 6px; }
+ol li::marker { color: var(--accent); font-weight: 700; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.4em 0 1.2em;
+  font-variant-numeric: tabular-nums;
+  break-inside: avoid;
+}
+th {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-align: left;
+  padding: 6px 8px;
+}
+td { padding: 6px 8px; border-bottom: 1px solid var(--rule); text-align: left; }
+th.num, td.num { text-align: right; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+.callout {
+  border-left: 3px solid var(--accent);
+  padding: 2px 0 2px 12px;
+  margin: 1em 0;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.callout strong { color: var(--accent); }
+blockquote {
+  margin: 1.2em 2em;
+  font-size: 12pt;
+  font-style: italic;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+blockquote p { margin: 0 0 0.4em; }
+blockquote footer { font-style: normal; font-family: var(--font-mono); font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+figure { margin: 1.2em 0; break-inside: avoid; }
+figcaption.caption { margin-bottom: 8px; }
+.bar-chart { display: grid; gap: 8px; padding: 4px 0; }
+.bar-row { display: grid; grid-template-columns: 7rem 1fr; align-items: center; gap: 8px; }
+.bar-label { text-align: right; font-size: 10pt; color: var(--ink-2); padding-right: 4px; }
+.bar-track { height: 22px; border-left: 1px solid var(--ink-3); }
+.bar { height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: var(--on-accent); font-family: var(--font-mono); font-size: 8pt; }
+.bar.s1 { background: var(--series-1); }
+.bar.s2 { background: var(--series-2); }
+.bar.s3 { background: var(--series-3); }
+.bar.s4 { background: var(--series-4); }
+.bar.s5 { background: var(--series-5); }
+.bar.s6 { background: var(--series-6); }
+.chart-axis { margin-left: calc(7rem + 8px); border-top: 1px solid var(--ink-3); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 7pt; color: var(--ink-3); padding-top: 2px; }
+.page-break { break-before: page; }
+@page {
+  size: letter portrait;
+  margin: 2.54cm;
+  @bottom-right {
+    content: counter(page);
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, "Courier New", monospace;
+    font-size: 8pt;
+    color: #6f6b64;
+  }
+}
+@page :first {
+  @bottom-right { content: none; }
+}
+@media print {
+  html, body { background: var(--surface); }
+  .page { max-width: none; margin: 0; padding: 0; }
+  .no-print, nav { display: none !important; }
+  .cover { min-height: calc(11in - 5.08cm); margin-bottom: 0; padding-top: 30%; break-after: page; }
+  .doc-footer { display: none; }
+  h1, h2, h3, .caption { break-after: avoid; }
+  p, li, blockquote, .callout { orphans: 3; widows: 3; }
+  a { color: var(--ink); text-decoration: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="cover">
+    <div class="eyebrow">Data With Dillon</div>
+    <div class="cover-title">Repeat customers</div>
+    <p class="cover-subtitle">Twelve months of sales, January to December 2026</p>
+    <div class="cover-date">3 November 2026</div>
+  </section>
+
+  <header class="doc-header">
+    <span class="mark">DWD</span>
+    <span>2 - Findings</span>
+  </header>
+
+  <h1>2. Findings</h1>
+  <p>Twelve months of sales data show that repeat customers drive most of the growth. First-time buyers held steady, while people who had bought before spent more and came back sooner.</p>
+  <p>This section sets out the main numbers by quarter, then looks at what changed in the second half of the year.</p>
+
+  <h2>Revenue by quarter</h2>
+  <p>Revenue grew in every quarter. The share from repeat customers rose from just under half to nearly two thirds.</p>
+  <div class="caption">Table 1. Revenue by quarter</div>
+  <table>
+    <thead>
+      <tr><th>Quarter</th><th class="num">Revenue ($k)</th><th class="num">Orders</th><th class="num">Repeat share</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Q1</td><td class="num">412</td><td class="num">3,180</td><td class="num">48%</td></tr>
+      <tr><td>Q2</td><td class="num">455</td><td class="num">3,420</td><td class="num">54%</td></tr>
+      <tr><td>Q3</td><td class="num">501</td><td class="num">3,610</td><td class="num">61%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout"><strong>Key point:</strong> Figures exclude refunds issued after 30 June.</div>
+
+  <h3>What drove the change</h3>
+  <ul>
+    <li>A loyalty email sent four weeks after the first order.</li>
+    <li>Free shipping on second orders over $40.</li>
+    <li>A shorter checkout for returning customers.</li>
+  </ul>
+
+  <blockquote>
+    <p>Most growth came from people who had bought before.</p>
+    <footer>Sales review, Q2</footer>
+  </blockquote>
+
+  <figure>
+    <figcaption class="caption">Figure 1. Revenue by channel, Q3 ($k)</figcaption>
+    <div class="bar-chart" role="img" aria-label="Bar chart of Q3 revenue by channel">
+      <div class="bar-row"><span class="bar-label">Email</span><div class="bar-track"><div class="bar s1" style="width: 92%">184</div></div></div>
+      <div class="bar-row"><span class="bar-label">Search</span><div class="bar-track"><div class="bar s2" style="width: 70%">140</div></div></div>
+      <div class="bar-row"><span class="bar-label">Social</span><div class="bar-track"><div class="bar s3" style="width: 48%">96</div></div></div>
+      <div class="bar-row"><span class="bar-label">Direct</span><div class="bar-track"><div class="bar s4" style="width: 41%">81</div></div></div>
+    </div>
+    <div class="chart-axis"><span>0</span><span>50</span><span>100</span><span>150</span><span>200</span></div>
+  </figure>
+
+  <footer class="doc-footer">2</footer>
+</div>
+</body>
+</html>

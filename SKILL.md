@@ -16,6 +16,7 @@ format.
 - `references/powerpoint.md`: rules for PowerPoint decks (.pptx).
 - `references/markdown.md`: rules for Markdown files (.md).
 - `references/excel.md`: rules for Excel workbooks (.xlsx).
+- `references/html.md`: rules for single-file HTML reports (.html).
 - `assets/`: ready-made templates, where one exists.
 - `scripts/`: the scripts that build the templates.
 
@@ -31,7 +32,8 @@ format.
    [word.md](references/word.md) for Word,
    [powerpoint.md](references/powerpoint.md) for PowerPoint,
    [markdown.md](references/markdown.md) for Markdown,
-   [excel.md](references/excel.md) for Excel.
+   [excel.md](references/excel.md) for Excel,
+   [html.md](references/html.md) for HTML.
 3. If a matching template exists under `assets/`, start from it instead of a
    blank file.
 4. Where a format file and `brand.md` disagree, the format file wins for that
