@@ -27,6 +27,9 @@ BRAND = {
     "B07A6E", "E3D3CC", "D4DDCB", "86A274",
 }
 EYEBROW = "DWD - DATA WITH DILLON"
+NOTE_LABELS = {"Note", "Key point", "Warning", "Summary", "Quote"}
+STEP_RE = re.compile(r"Step (\d+)")
+TOPIC_RE = re.compile(r"[A-Za-z][A-Za-z0-9'-]*(?: [A-Za-z0-9][A-Za-z0-9'-]*)?")
 HEADER_ROW = 6
 
 
@@ -271,6 +274,35 @@ def check_charts(wb):
     return result(bad, f"{count} charts: series colours are brand colours, no chart titles")
 
 
+def check_notes(wb):
+    sheets = [ws for ws in wb.worksheets if ws.title == "Notes"]
+    if not sheets:
+        return True, "no Notes sheet"
+    ws = sheets[0]
+    found = list(tables(ws))
+    if len(found) != 1:
+        return False, f"Notes has {len(found)} tables, want one"
+    head, cols, end = found[0]
+    bad = []
+    step = 0
+    keys = 0
+    for r in range(head + 1, end + 1):
+        c = ws.cell(row=r, column=cols[0])
+        v = str(c.value or "").strip()
+        m = STEP_RE.fullmatch(v)
+        if m:
+            step += 1
+            if int(m.group(1)) != step:
+                bad.append(f"Notes!{c.coordinate} is '{v}', want 'Step {step}'")
+        elif v == "Key point":
+            keys += 1
+            if keys == 2:
+                bad.append(f"Notes!{c.coordinate} is a second Key point row")
+        elif v not in NOTE_LABELS and not TOPIC_RE.fullmatch(v):
+            bad.append(f"Notes!{c.coordinate} label '{v}' is not an allowed label or a one or two word topic")
+    return result(bad, f"Notes has one table, {end - head} labelled rows, steps in order, at most one Key point")
+
+
 def check_calc(wb):
     has = any(is_formula(c.value) for ws in wb.worksheets for c in cells_from(ws, 1))
     if has and not (wb.calculation and wb.calculation.fullCalcOnLoad):
@@ -309,6 +341,7 @@ def main():
         ("sheet-setup", lambda: check_setup(wb)),
         ("captions", lambda: check_captions(wb)),
         ("charts", lambda: check_charts(wb)),
+        ("notes", lambda: check_notes(wb)),
         ("calculation", lambda: check_calc(wb)),
         ("names", lambda: check_names(wb, path)),
     ]
