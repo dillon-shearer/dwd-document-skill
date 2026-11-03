@@ -32,6 +32,21 @@ Repeat customers placed fewer than half the orders but brought in most of the re
 
 New customers have no second order, so the gap between orders does not apply to them. The median across all customers was not computed.
 
+Repeat orders rose in every quarter while new orders stayed flat.
+
+**Figure 1. Orders by quarter**
+
+![Figure 1. Orders by quarter](dwd-sample-figure-1.png)
+
+**Table 2. Orders by quarter**
+
+| Quarter | Repeat orders | New orders |
+| --- | ---: | ---: |
+| Q1 | 880 | 1,330 |
+| Q2 | 980 | 1,350 |
+| Q3 | 1,080 | 1,340 |
+| Q4 | 1,180 | 1,360 |
+
 > **Key point:** Repeat customers made up 43% of orders and 64% of revenue.
 
 ### What customers said
