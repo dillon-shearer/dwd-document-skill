@@ -50,3 +50,11 @@ Builds `assets/dwd-template.xlsx` and `assets/dwd-sample.xlsx` from the rules in
     python scripts/build_excel.py
 
 It needs openpyxl. If it is missing the script installs it with `pip install openpyxl`; you can also install it yourself first. Reruns overwrite both files, and the same input gives the same contents.
+
+## check_md.py
+
+Checks a finished .md file against `references/markdown.md`. Run it with the file as the only argument:
+
+    python scripts/check_md.py path/to/file.md
+
+It prints one PASS or FAIL line per check, with the line number on FAIL, and exits 1 on any FAIL. It checks that the file is UTF-8 with LF endings and one final newline, that lines 1 to 5 are the eyebrow, a blank line, the only H1, a blank line and the italic subtitle with a `3 November 2026` style date, that there is no front matter, that headings stop at H3 and never skip a level, that H2 headings are all numbered in order from 1 or none are, that headings have no trailing punctuation, bold or links, that bullets use `-`, that every table has a `**Table N. ...**` label, a `---` or `---:` separator and no empty cells, that every code fence has a language tag, that callouts use `Note`, `Key point` or `Warning` with at most one per H2 section and no `[!NOTE]` alerts, that there is no HTML, and that relative links resolve and `#fragment` links match a heading. Fenced code and inline code are skipped for the marker, HTML and link checks. It uses the standard library only and does nothing at import. `check.py` at the repo root runs it on `assets/dwd-sample.md`.

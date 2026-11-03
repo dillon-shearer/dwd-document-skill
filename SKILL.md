@@ -24,15 +24,10 @@ format.
 For a format with no file under `references/` yet, apply `brand.md` and say so in
 the output.
 
-## Reading order
+## How to use it
 
-1. Brand first: [references/brand.md](references/brand.md).
-2. Then the one format file that matches the output.
-
-## How to apply
-
-1. Read `references/brand.md` in full.
-2. Read the one file under `references/` that matches the output format:
+1. Read [references/brand.md](references/brand.md) in full, first.
+2. Then read the one file under `references/` that matches the output format:
    [word.md](references/word.md) for Word,
    [powerpoint.md](references/powerpoint.md) for PowerPoint,
    [markdown.md](references/markdown.md) for Markdown,

@@ -100,6 +100,19 @@ def check_pptx():
     return "PASS", f"check_deck.py passes {len(lines)} checks on assets/dwd-sample.pptx"
 
 
+def check_md():
+    script = ROOT / "scripts" / "check_md.py"
+    sample = ROOT / "assets" / "dwd-sample.md"
+    if not script.exists() or not sample.exists():
+        return "SKIP", "scripts/check_md.py or assets/dwd-sample.md not present"
+    run = subprocess.run([sys.executable, str(script), str(sample)], capture_output=True, text=True)
+    lines = run.stdout.splitlines()
+    if run.returncode != 0:
+        bad = [l for l in lines if l.startswith("FAIL")] or [run.stderr.strip().splitlines()[-1] if run.stderr.strip() else "exit " + str(run.returncode)]
+        return "FAIL", "check_md.py on assets/dwd-sample.md: " + "; ".join(bad)
+    return "PASS", f"check_md.py passes {len(lines)} checks on assets/dwd-sample.md"
+
+
 def main():
     checks = [
         ("skill-frontmatter", check_skill),
@@ -107,6 +120,7 @@ def main():
         ("ascii-only", check_ascii),
         ("docx-sample", check_docx),
         ("pptx-sample", check_pptx),
+        ("md-sample", check_md),
     ]
     failed = False
     for name, fn in checks:

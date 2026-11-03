@@ -35,6 +35,8 @@ Mix of picker options C and E: accent-coloured headings, with a thin rule under 
 
 Office default density (picker option D): 11pt / 1.15 line height, colour #111110, paragraph spacing 0.6em. Aptos, fallback Calibri, Carlito, 'Segoe UI', sans-serif.
 
+Bold marks a key term on first use only. That rule does not cover structural labels such as table label lines and callout labels, which are bold every time.
+
 ## Tables
 
 Header fill, white text (picker option B).
@@ -45,9 +47,11 @@ Header fill, white text (picker option B).
 
 ## Header and footer
 
+The mark reads "DWD" everywhere.
+
 Mark left, section right, the site layout (picker option A).
 
-- Header: DW mark at left (square, background #7a2e2e, white IBM Plex Mono 500 letters); section number and name at right, for example "2 - Methods". 1px #e3e1db rule under the header.
+- Header: DWD mark at left (square, background #7a2e2e, white IBM Plex Mono 500 letters); section number and name at right, for example "2 - Methods". 1px #e3e1db rule under the header.
 - Footer: page number at right, nothing at left. 1px #e3e1db rule above the footer.
 - Header and footer text: IBM Plex Mono, uppercase, letter spacing 0.08em, colour #6f6b64.
 
@@ -61,7 +65,7 @@ Left statement with accent bar, the site layout (picker option A).
 
 ## Callouts
 
-Left accent bar, the site style (picker option A): 3px solid #7a2e2e left border, 12px left padding, 2px top and bottom padding, text #111110 at line height 1.45. No fill, no box.
+Left accent bar, the site style (picker option A): 3px solid #7a2e2e left border, 12px left padding, 2px top and bottom padding, text #111110 at line height 1.45. No fill, no box. Each format file sets the callout limit (one per section, per page or per slide).
 
 ## Lists
 
@@ -80,9 +84,13 @@ Site palette (picker option A). Use the series in this order.
 
 Normal margins (picker option A): portrait, single column, 2.54 cm on all four sides.
 
+## Dates
+
+Full dates are day, month, year with no ordinal and no leading zero: `3 November 2026`. Where only the month is shown (the Word cover date), write `November 2026`.
+
 ## Voice
 
-Not fixed. The operator did not choose a voice: each document needs a voice that fits its occasion, and this applies to every document the skill creates. Until a per-document voice system is designed, pick one of the options below for each document from the request, and ask when the occasion is unclear.
+The default is neutral third person. The request overrides it: when it asks for a voice, or the occasion clearly calls for one of the options below, use that. Ask only when an operator is available to answer. Keep one voice throughout a document.
 
 - Plain, first person: "I looked at twelve months of sales and found that repeat customers drive most of the growth."
 - Neutral, third person: "Twelve months of sales data show that repeat customers drive most of the growth."
