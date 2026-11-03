@@ -37,7 +37,7 @@ It needs python-pptx and XlsxWriter (python-pptx uses XlsxWriter to store chart 
 
 ## dwd_pptx.py
 
-The helpers agents use to build a deck from the template: `layout_named`, `add_hf`, `set_lines`, `add_table`, `add_chart`, `add_image`, `add_callout` and `set_core`. `references/powerpoint.md` documents each one. It needs only python-pptx and lxml, installs nothing and does nothing at import:
+The helpers agents use to build a deck from the template: `layout_named`, `add_hf`, `set_lines` (with `numbered=True` for a numbered list), `add_table`, `add_chart`, `add_image`, `add_callout` and `set_core`. `references/powerpoint.md` documents each one. It needs only python-pptx and lxml, installs nothing and does nothing at import:
 
     import sys; sys.path.insert(0, "scripts")
     import dwd_pptx
@@ -48,7 +48,7 @@ Checks a finished .pptx against `references/powerpoint.md`. Run it with the file
 
     python scripts/check_deck.py path/to/file.pptx
 
-It prints one PASS or FAIL line per check and exits 1 on any FAIL. It checks that the file started from the template (the DWD Table style is defined), that every slide uses a DWD layout, that the deck opens with Title and ends with Closing, that content slides carry the footer and slide number, that no placeholder run has a direct font, size or colour, that tables use DWD Table, fit 7 by 5, have no merged cells and right align numbers, that bullets keep to six items and two levels, that titles are at most 55 characters, that Chart and Picture slides have their chart or alt-texted picture and a caption, and that the file name has no spaces. It needs python-pptx and installs it with pip if missing. `check.py` at the repo root runs it on `assets/dwd-sample.pptx`.
+It prints one PASS or FAIL line per check and exits 1 on any FAIL. It checks that the file started from the template (the DWD Table style is defined), that every slide uses a DWD layout, that the deck opens with Title and ends with Closing, that content slides carry the footer and slide number, that no placeholder run has a direct font, size or colour, that tables use DWD Table, fit 7 by 5, have no merged cells and right align numbers, that bullets keep to six items and two levels, that numbered paragraphs (`a:buAutoNum`) have a #7a2e2e `a:buClr` and no level 0 text starts with a typed "1." or "1)" number, that titles are at most 55 characters, that Chart and Picture slides have their chart or alt-texted picture and a caption, and that the file name has no spaces. It needs python-pptx and installs it with pip if missing. `check.py` at the repo root runs it on `assets/dwd-sample.pptx`.
 
 ## build_excel.py
 

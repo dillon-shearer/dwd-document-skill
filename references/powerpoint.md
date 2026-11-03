@@ -14,7 +14,7 @@ Slide size: 16:9 widescreen, 13.333 x 7.5 in (33.867 x 19.05 cm), side margins 0
 
 - `layout_named(prs, name)`: the layout with that name.
 - `add_hf(slide, types, values)`: copies the footer (`"ftr"`), slide number (`"sldNum"`) or date (`"dt"`) placeholders onto the slide; `values` maps `"ftr"` and `"dt"` to their text.
-- `set_lines(frame, lines)`: fills a text frame from `(level, text)` pairs; level 0 or 1.
+- `set_lines(frame, lines, numbered=False)`: fills a text frame from `(level, text)` pairs; level 0 or 1. With `numbered=True` each level 0 item is numbered "1." "2." in #7a2e2e; level 1 items keep the dash.
 - `add_table(slide, placeholder, rows, numeric_cols=None)`: a DWD Table in the placeholder's place. `numeric_cols` lists the column indexes to right align; left out, a column is numeric when every body cell is a number.
 - `add_chart(placeholder, chart_type, data, palette="categorical")`: a native chart, styled; returns the graphic frame.
 - `add_image(slide, path, caption)`: on the Picture layout, the picture fitted into the box with the caption as alt text and as the caption line.
@@ -113,6 +113,7 @@ python-pptx does not copy the footer and slide number placeholders onto new slid
 
 - Level 1 is a #7a2e2e square bullet; level 2 is a #6f6b64 dash. 6pt after each item. Keep to these two levels (python-pptx levels 0 and 1).
 - At most six bullets per slide and about ten words per bullet. No full stop at the end of a bullet.
+- For steps or ranked items use `set_lines(frame, lines, numbered=True)`. At most six items. The numbers come in the accent colour #7a2e2e from the helper; never type the numbers into the text.
 - Use the Section layout, not a bullet, for a one-line statement.
 
 ## Tables
@@ -150,6 +151,7 @@ Voice and prose: follow the Writing section in brand.md.
 - No placeholder run has a direct font, size or colour.
 - Every table uses DWD Table, fits 7 rows and 5 columns, has no merged cells, and right aligns numbers.
 - Content placeholders keep to six bullets and two levels.
+- Numbered lists use `set_lines(..., numbered=True)`: numbers in #7a2e2e, none typed into the text.
 - Every title is at most 55 characters.
 - Every Chart slide holds a native chart and a caption; every Picture slide has alt text and a caption.
 - File name has no spaces, for example `dwd-quarterly-sales-review.pptx`.
