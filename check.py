@@ -1,4 +1,5 @@
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -73,8 +74,26 @@ def check_ascii():
     return "PASS", "all checked files are ASCII"
 
 
+def check_docx():
+    script = ROOT / "scripts" / "check_docx.py"
+    sample = ROOT / "assets" / "dwd-sample.docx"
+    if not script.exists() or not sample.exists():
+        return "SKIP", "scripts/check_docx.py or assets/dwd-sample.docx not present"
+    run = subprocess.run([sys.executable, str(script), str(sample)], capture_output=True, text=True)
+    lines = run.stdout.splitlines()
+    if run.returncode != 0:
+        bad = [l for l in lines if l.startswith("FAIL")] or [run.stderr.strip().splitlines()[-1] if run.stderr.strip() else "exit " + str(run.returncode)]
+        return "FAIL", "check_docx.py on assets/dwd-sample.docx: " + "; ".join(bad)
+    return "PASS", f"check_docx.py passes {len(lines)} checks on assets/dwd-sample.docx"
+
+
 def main():
-    checks = [("skill-frontmatter", check_skill), ("md-links", check_links), ("ascii-only", check_ascii)]
+    checks = [
+        ("skill-frontmatter", check_skill),
+        ("md-links", check_links),
+        ("ascii-only", check_ascii),
+        ("docx-sample", check_docx),
+    ]
     failed = False
     for name, fn in checks:
         status, detail = fn()

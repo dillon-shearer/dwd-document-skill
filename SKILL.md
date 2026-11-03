@@ -20,6 +20,9 @@ format.
 - `assets/`: ready-made templates, where one exists.
 - `scripts/`: the scripts that build the templates.
 
+For a format with no file under `references/` yet, apply `brand.md` and say so in
+the output.
+
 ## Reading order
 
 1. Brand first: [references/brand.md](references/brand.md).

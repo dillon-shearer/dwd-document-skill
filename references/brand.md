@@ -87,7 +87,3 @@ Not fixed. The operator did not choose a voice: each document needs a voice that
 - Plain, first person: "I looked at twelve months of sales and found that repeat customers drive most of the growth."
 - Neutral, third person: "Twelve months of sales data show that repeat customers drive most of the growth."
 - Formal corporate: "Data With Dillon has completed a comprehensive review of twelve months of sales data, which indicates that repeat customers are the principal driver of growth."
-
-## Notes
-
-Operator notes from the picker: for option 4 mix C and E (coloured accents, with the underline under H1s). Option 13 should be something that can be changed: different occasions need different voices, true of all documents the skill creates, and needs a clear fix. None of the three voice options is favoured.

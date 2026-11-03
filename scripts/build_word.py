@@ -1,3 +1,4 @@
+import io
 import re
 import subprocess
 import sys
@@ -11,8 +12,18 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "python-docx"])
     import docx
 
+try:
+    import matplotlib
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "matplotlib"])
+    import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls, qn
+from docx.shared import Inches
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
@@ -309,6 +320,22 @@ def set_page(doc):
     ))
 
 
+def set_settings(doc):
+    settings = doc.settings.element
+    for old in settings.findall(qn("w:updateFields")):
+        settings.remove(old)
+    el = parse_xml(f'<w:updateFields {nsdecls("w")} w:val="true"/>')
+    anchor = None
+    for tag in ("w:hdrShapeDefaults", "w:footnotePr", "w:endnotePr", "w:compat", "w:docVars", "w:rsids"):
+        anchor = settings.find(qn(tag))
+        if anchor is not None:
+            break
+    if anchor is not None:
+        anchor.addprevious(el)
+    else:
+        settings.append(el)
+
+
 def set_core(doc, title):
     core = doc.core_properties
     core.author = "Data With Dillon"
@@ -344,6 +371,7 @@ def build_template():
     build_theme(doc)
     set_page(doc)
     set_header_footer(doc, "1 - Section", "Month Year")
+    set_settings(doc)
     clear_body(doc)
     doc.add_paragraph("")
     set_core(doc, "DWD template")
@@ -359,7 +387,56 @@ def add_table(doc, rows):
             cell.text = value
             if r > 0 and c > 0:
                 cell.paragraphs[0].alignment = 2
+    tr_pr = table.rows[0]._tr.get_or_add_trPr()
+    if tr_pr.find(qn("w:tblHeader")) is None:
+        tr_pr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
     return table
+
+
+def restart_numbering(doc, abstract_id=NUMBER_NUM):
+    numbering = doc.part.numbering_part.element
+    ids = [int(n.get(qn("w:numId"))) for n in numbering.findall(qn("w:num"))]
+    num_id = max(ids) + 1
+    numbering.append(parse_xml(
+        f'<w:num {nsdecls("w")} w:numId="{num_id}"><w:abstractNumId w:val="{abstract_id}"/>'
+        '<w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>'
+    ))
+    return num_id
+
+
+def set_num(paragraph, num_id):
+    p_pr = paragraph._p.get_or_add_pPr()
+    old = p_pr.find(qn("w:numPr"))
+    if old is not None:
+        p_pr.remove(old)
+    el = parse_xml(f'<w:numPr {nsdecls("w")}><w:ilvl w:val="0"/><w:numId w:val="{num_id}"/></w:numPr>')
+    style = p_pr.find(qn("w:pStyle"))
+    if style is not None:
+        style.addnext(el)
+    else:
+        p_pr.insert(0, el)
+
+
+def chart_png(labels, series, names):
+    grey = "#" + INK3.lower()
+    fig, ax = plt.subplots(figsize=(6.5, 3.25), dpi=200)
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
+    for values, name, colour in zip(series, names, CHART):
+        ax.plot(labels, values, color="#" + colour.lower(), linewidth=2, label=name)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_color(grey)
+        ax.spines[side].set_linewidth(0.75)
+    ax.tick_params(colors=grey, labelsize=8, width=0.75)
+    ax.legend(frameon=False, fontsize=8, labelcolor=grey)
+    fig.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=200, transparent=True, metadata={"Software": None})
+    plt.close(fig)
+    buf.seek(0)
+    return buf
 
 
 def build_sample():
@@ -367,7 +444,7 @@ def build_sample():
     clear_body(doc)
     set_header_footer(doc, "1 - Summary", "November 2026")
     doc.add_paragraph("Data With Dillon", style="Cover Eyebrow")
-    doc.add_paragraph("Quarterly sales review", style="Title")
+    doc.add_paragraph("Quarterly review", style="Title")
     doc.add_paragraph("What twelve months of orders say about repeat customers", style="Subtitle")
     h1 = doc.add_paragraph("1 - Summary", style="Heading 1")
     h1.paragraph_format.page_break_before = True
@@ -397,7 +474,32 @@ def build_sample():
         "\"I came back because the second order was as easy as the first.\" - Customer survey, October",
         style="Quote",
     )
-    set_core(doc, "Quarterly sales review")
+    h1 = doc.add_paragraph("2 - Orders by week", style="Heading 1")
+    h1.paragraph_format.page_break_before = True
+    doc.add_paragraph("Weekly orders for the year. The header row repeats when the table crosses a page.")
+    rows = [["Week", "Orders", "Repeat share", "Change"]]
+    for week in range(1, 53):
+        orders = 230 + (week * 37) % 90 + week * 2
+        share = 36 + week // 5
+        change = (week * 13) % 11 - 5
+        rows.append([f"Week {week}", f"{orders:,}", f"{share}%", f"{change:+d} pts"])
+    add_table(doc, rows)
+    doc.add_paragraph("Table 2. Orders by week", style="Caption")
+    h1 = doc.add_paragraph("3 - Trend", style="Heading 1")
+    h1.paragraph_format.page_break_before = True
+    doc.add_paragraph("Repeat orders overtook new orders in the second quarter and stayed ahead.")
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    repeat = [180, 192, 205, 231, 248, 262, 270, 284, 297, 310, 322, 341]
+    new = [240, 236, 241, 229, 233, 238, 231, 236, 240, 234, 237, 239]
+    doc.add_picture(chart_png(months, [repeat, new], ["Repeat", "New"]), width=Inches(6.5))
+    doc.add_paragraph("Figure 1. Orders by month", style="Caption")
+    h1 = doc.add_paragraph("4 - Next steps", style="Heading 1")
+    h1.paragraph_format.page_break_before = True
+    doc.add_paragraph("The numbered list below restarts at 1.")
+    num_id = restart_numbering(doc)
+    for text in ["Share the review with the team.", "Agree the Q1 targets.", "Book the next review for March."]:
+        set_num(doc.add_paragraph(text, style="List Number"), num_id)
+    set_core(doc, "Quarterly review")
     save_stable(doc, SAMPLE)
 
 
