@@ -2,6 +2,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dwd_prose
+
 EYEBROW = "`DWD / DATA WITH DILLON`"
 MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December"
 SUBTITLE_RE = re.compile(r"^\*(?!\*)\S.* - ([1-9]|[12][0-9]|3[01]) (" + MONTHS + r") \d{4}\*$")
@@ -15,6 +18,8 @@ SEP_CELL_RE = re.compile(r"^-{3,}:?$")
 CALLOUT_RE = re.compile(r"^ {0,3}>\s*\*\*([^*]+?)\*\*")
 ALERT_RE = re.compile(r"^ {0,3}>\s*\[![A-Za-z]+\]")
 LABELS = {"Note", "Key point", "Warning"}
+LINK_TARGET_RE = re.compile(r"\]\([^)]*\)")
+SEP_ROW_RE = re.compile(r"^\s*\|?[\s|:-]+$")
 
 
 def strip_code(line):
@@ -275,6 +280,16 @@ def check_links(doc):
     return bad, f"{count} link(s): relative paths resolve, fragments match headings"
 
 
+def prose_items(doc):
+    for num, line in doc.outside():
+        text = LINK_TARGET_RE.sub("]", strip_code(line))
+        if text.lstrip().startswith("|"):
+            if SEP_ROW_RE.match(text):
+                continue
+            text = " | ".join(c for c in split_row(text) if not dwd_prose.is_data(c))
+        yield f"line {num}", text
+
+
 CHECKS = [
     ("encoding", check_encoding),
     ("title-block", check_title_block),
@@ -309,6 +324,7 @@ def main(argv):
             print(f"FAIL {name}: " + "; ".join(bad))
         else:
             print(f"PASS {name}: {ok}")
+    failed = dwd_prose.report(dwd_prose.scan(prose_items(doc)), "body text") or failed
     return 1 if failed else 0
 
 

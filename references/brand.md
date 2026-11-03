@@ -88,10 +88,34 @@ Normal margins (picker option A): portrait, single column, 2.54 cm on all four s
 
 Full dates are day, month, year with no ordinal and no leading zero: `3 November 2026`. Where only the month is shown (the Word cover date), write `November 2026`.
 
-## Voice
+## Writing
 
-The default is neutral third person. The request overrides it: when it asks for a voice, or the occasion clearly calls for one of the options below, use that. Ask only when an operator is available to answer. Keep one voice throughout a document.
+The default voice is neutral third person. The request overrides it: when it asks for a voice, or the occasion clearly calls for one of the options below, use that. Ask only when an operator is available to answer.
 
 - Plain, first person: "I looked at twelve months of sales and found that repeat customers drive most of the growth."
 - Neutral, third person: "Twelve months of sales data show that repeat customers drive most of the growth."
 - Formal corporate: "Data With Dillon has completed a comprehensive review of twelve months of sales data, which indicates that repeat customers are the principal driver of growth."
+
+Voice is per document, not per brand. Plain first person for a personal note or a blog style post; neutral third person for a report, an analysis or anything with no named author; formal corporate for a client-facing or contractual document. One voice per document; never mix. A document type that needs a fourth voice gets a new option here, not a flag.
+
+Punctuation: no em dash and no en dash; use a comma, a colon, a full stop or parentheses. Hyphens only inside compound words. Straight quotes in plain text files; typographic quotes only where the format file says so.
+
+Plain prose: short sentences, one idea each; active voice; concrete nouns and numbers over adjectives; say the finding first, then the evidence.
+
+Banned patterns, with the fix:
+
+- Filler openers ("In today's fast-paced world", "It is important to note"): start with the finding.
+- Summary closers ("In conclusion", "Overall,"): stop when the point is made.
+- Stock words (delve, robust, leverage, seamless, crucial, landscape, journey, unlock, harness, tapestry, navigate): use the plain word.
+- Lists padded to three items: list only the items there are.
+- A bold label on every bullet: write the bullet as a sentence.
+- Rhetorical questions: state the answer.
+- "Not only X but also Y": write "X and Y".
+- Exclamation marks: use a full stop.
+- Stacked hedges ("may potentially"): one hedge at most, or a number.
+
+The checkers fail on dashes, the stock words and the quoted phrases above.
+
+Content honesty: do not invent numbers, names, sources or quotes. Mark missing data with the format's missing marker. A quote needs a real source, or it is not used.
+
+Length: the document is as long as the content, never padded to a page count.

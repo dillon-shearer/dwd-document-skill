@@ -79,13 +79,7 @@ None for reports, READMEs and notes. Use YAML front matter only when a tool need
 
 ## Voice
 
-The default is neutral third person. The request overrides it. Ask only when an operator is available. Keep one voice throughout.
-
-- Plain, first person: "I looked at twelve months of sales and found that repeat customers drive most of the growth."
-- Neutral, third person: "Twelve months of sales data show that repeat customers drive most of the growth."
-- Formal corporate: "Data With Dillon has completed a comprehensive review of twelve months of sales data, which indicates that repeat customers are the principal driver of growth."
-
-In every voice: lead with the finding, short sentences, plain words, no filler.
+Voice and prose: follow the Writing section in brand.md.
 
 ## Line length and file
 

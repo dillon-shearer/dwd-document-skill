@@ -3,6 +3,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dwd_prose
+
 try:
     import docx
 except ImportError:
@@ -176,6 +179,17 @@ def check_placeholders(doc):
     return True, "cover date and header section text are filled in"
 
 
+def prose_items(doc):
+    for i, p in enumerate(body_paras(doc), 1):
+        yield f"paragraph {i}", para_text(p)
+    for t, tbl in enumerate(tables(doc), 1):
+        for r, tr in enumerate(tbl.findall(qn("w:tr")), 1):
+            for c, tc in enumerate(tr.findall(qn("w:tc")), 1):
+                text = para_text(tc)
+                if not dwd_prose.is_data(text):
+                    yield f"table {t} row {r} cell {c}", text
+
+
 def main():
     if len(sys.argv) != 2:
         print("usage: python scripts/check_docx.py path/to/file.docx")
@@ -198,6 +212,7 @@ def main():
         ok, detail = fn()
         print(f"{'PASS' if ok else 'FAIL'} {name}: {detail}")
         failed = failed or not ok
+    failed = dwd_prose.report(dwd_prose.scan(prose_items(doc)), "body paragraphs and text cells") or failed
     return 1 if failed else 0
 
 

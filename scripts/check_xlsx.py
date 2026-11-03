@@ -4,6 +4,9 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dwd_prose
+
 try:
     import openpyxl
 except ImportError:
@@ -282,6 +285,13 @@ def check_names(wb, path):
     return result(bad, f"sheets named; file name '{path.name}' has no spaces")
 
 
+def prose_items(wb):
+    for ws in wb.worksheets:
+        for c in cells_from(ws, 1):
+            if isinstance(c.value, str) and not is_formula(c.value) and not dwd_prose.is_data(c.value):
+                yield f"{ws.title}!{c.coordinate}", c.value
+
+
 def main():
     if len(sys.argv) != 2:
         print("usage: python scripts/check_xlsx.py path/to/file.xlsx")
@@ -307,6 +317,7 @@ def main():
         ok, detail = fn()
         print(f"{'PASS' if ok else 'FAIL'} {name}: {detail}")
         failed = failed or not ok
+    failed = dwd_prose.report(dwd_prose.scan(prose_items(wb)), "text cells") or failed
     return 1 if failed else 0
 
 

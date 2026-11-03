@@ -12,6 +12,13 @@ It needs python-docx. If it is missing the script installs it with `pip install 
 
 It also draws the sample's chart PNG with matplotlib. If matplotlib is missing the script installs it with `pip install matplotlib`. The PNG carries no software tag or timestamp, so reruns give the same image.
 
+## dwd_prose.py
+
+The banned list from the Writing section of `references/brand.md`: em dash, en dash, the stock words and the quoted phrases. `find_banned(text)` returns a list of `(word, snippet)` pairs, and URLs in the text are skipped. Each checker imports it and adds a `prose` check that prints one FAIL line per hit, with the paragraph, slide, line, or sheet and cell. Code, URLs and table cells with no words (data) are skipped. It uses the standard library only and does nothing at import:
+
+    import sys; sys.path.insert(0, "scripts")
+    import dwd_prose
+
 ## check_docx.py
 
 Checks a finished .docx against `references/word.md`. Run it with the file as the only argument:
