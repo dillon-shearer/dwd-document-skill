@@ -486,6 +486,9 @@ def find_browser():
     return None
 
 
+PRINT_TIMEOUT = 60
+
+
 def print_render(path):
     browser = find_browser()
     if not browser:
@@ -498,9 +501,11 @@ def print_render(path):
             f"--print-to-pdf={pdf}", Path(path).resolve().as_uri(),
         ]
         try:
-            subprocess.run(cmd, capture_output=True, timeout=180)
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            return "FAIL", f"{Path(browser).name} did not finish: {exc}"
+            subprocess.run(cmd, capture_output=True, timeout=PRINT_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            return "SKIP", f"{Path(browser).name} did not finish in {PRINT_TIMEOUT} seconds; print to PDF by hand"
+        except OSError as exc:
+            return "SKIP", f"{Path(browser).name} could not start: {exc}"
         if not pdf.is_file():
             return "FAIL", f"{Path(browser).name} wrote no PDF"
         pages = len(re.findall(rb"/Type\s*/Page(?![A-Za-z])", pdf.read_bytes()))

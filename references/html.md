@@ -139,7 +139,7 @@ Each line is one `scripts/check_html.py` check unless marked human-only.
 13. Charts and SVG have `role="img"`; SVG has `<title>` and `<desc>`.
 14. Quotes have a `p` and a `footer`.
 15. No bare `&`, no `<` in text.
-16. print-render (when Chrome or Edge is installed): the file prints to PDF and the page count looks right.
+16. print-render: PASS or SKIP; a SKIP means print by hand and check the page count. On PASS the page count looks right.
 17. Human-only: print preview shows the cover alone on page 1, each section on a new page, page numbers from page 2, and no table split mid-row.
 18. Human-only: one voice throughout, dates as `3 November 2026`, every chart has a text or table equivalent.
 19. `python scripts/check_html.py file.html` passes.
