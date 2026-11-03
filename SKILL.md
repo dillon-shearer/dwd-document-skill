@@ -1,0 +1,34 @@
+---
+name: dwd-document-skill
+description: Use this skill when producing any document, deck, sheet or other deliverable for Data With Dillon (DWD), so it follows the DWD brand.
+---
+
+# DWD Document Skill
+
+Brand rules and templates for Data With Dillon (DWD) deliverables. It covers
+the shared brand (palette, type, layout, voice) and the rules for each output
+format.
+
+## What it covers
+
+- `references/brand.md`: the brand rules every format shares.
+- `references/word.md`: rules for Word documents (.docx).
+- `references/powerpoint.md`: rules for PowerPoint decks (.pptx).
+- `assets/`: ready-made templates, where one exists.
+- `scripts/`: the scripts that build the templates.
+
+## Reading order
+
+1. Brand first: [references/brand.md](references/brand.md).
+2. Then the one format file that matches the output.
+
+## How to apply
+
+1. Read `references/brand.md` in full.
+2. Read the one file under `references/` that matches the output format:
+   [word.md](references/word.md) for Word,
+   [powerpoint.md](references/powerpoint.md) for PowerPoint.
+3. If a matching template exists under `assets/`, start from it instead of a
+   blank file.
+4. Where a format file and `brand.md` disagree, the format file wins for that
+   format.
