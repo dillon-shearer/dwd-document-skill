@@ -14,6 +14,7 @@ Document branding skill for Data With Dillon (DWD): rules and templates any AI a
 - Word (.docx): done
 - PowerPoint (.pptx): done
 - Markdown (.md): done
+- Excel (.xlsx): done
 
 ## Choose the brand
 
