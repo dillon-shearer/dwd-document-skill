@@ -5,7 +5,7 @@ Document branding skill for Data With Dillon (DWD): rules and templates any AI a
 ## How to point an agent at it
 
 1. Clone the repo and tell the agent to read the folder, starting with `SKILL.md`.
-2. Give the agent the raw URL of the skill: https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/SKILL.md
+2. Give the agent the raw URL of the skill: https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/SKILL.md. This route is complete for Markdown only. Word, PowerPoint and Excel start from a template under `assets/`, so also give the raw base URL https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/ and tell the agent to fetch the rules and the template it needs from there (for example `assets/dwd-template.docx`).
 3. Install it as a Claude Code skill: copy the folder into `.claude/skills/` (for example `.claude/skills/dwd-document-skill/`) in your project or home directory.
 
 ## Formats covered

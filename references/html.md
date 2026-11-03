@@ -102,7 +102,7 @@ Aptos 11pt, line height 1.15, `--ink`, paragraphs `margin: 0 0 0.6em`. Links in 
 
 ## Voice
 
-[brand.md](brand.md) does not fix a voice. Pick one per document from the request and keep it throughout; ask when the occasion is unclear.
+The default is neutral third person, as [brand.md](brand.md) says. The request overrides it. Ask only when an operator is available. Keep one voice throughout.
 
 ## Checklist before sending
 
