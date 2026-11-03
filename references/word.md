@@ -31,7 +31,7 @@ Use only these styles. Names are as Word shows them; python-docx takes the same 
 
 | Use | Style | Look |
 | --- | --- | --- |
-| Cover title | Title | DM Sans 700, 44pt, #111110 |
+| Cover title | Title | DM Sans 700, 44pt, #111110, right indent keeps it to 13 characters per line |
 | Cover subtitle | Subtitle | Aptos 14pt, #44403b |
 | Cover eyebrow | Cover Eyebrow | IBM Plex Mono 9pt, caps, #6f6b64 |
 | Cover date | Cover Date | IBM Plex Mono 9pt, caps, #6f6b64 (first-page footer) |
@@ -76,7 +76,7 @@ Write each Heading 1 as number, space, hyphen, space, name ("2 - Methods") so th
 ## Cover page recipe
 
 1. Cover Eyebrow: "Data With Dillon". Its space before puts the block about one third down the page.
-2. Title: the document title. Its right indent keeps it to about 9 characters per line. Titles over about 20 characters wrap to three lines, so shorten them.
+2. Title: the document title. Its right indent holds 13 characters per line, so a word of 13 letters fits on one line and a longer word breaks mid-word. Titles over about 26 characters wrap to three lines, so shorten them. When the brief fixes the title and a word is longer than 13 letters, hyphenate it at a syllable (end the first part with a hyphen, then a line break run: `run.add_break()`), or, when a long word sits badly next to its neighbours, put it on its own line with a line break run before it. `check_docx.py` fails `title-width` on any Title word over 13 characters.
 3. Subtitle: one line on what the document is.
 4. Put the date in the first-page footer, `doc.sections[0].first_page_footer.paragraphs[0]` (style Cover Date). The template holds the placeholder "Month Year" there, which prints as "MONTH YEAR" if you do not replace it.
 5. Start the first Heading 1 on page 2 with `paragraph_format.page_break_before = True`. Do not add an empty paragraph or a page break run.
