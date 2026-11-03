@@ -14,6 +14,7 @@ INLINE_CODE_RE = re.compile(r"(`+)(?!`).*?(?<!`)\1(?!`)")
 LINK_RE = re.compile(r"!?\[[^\]]*\]\(\s*<?([^)\s>]*)>?(?:\s+\"[^\"]*\")?\s*\)")
 HTML_RE = re.compile(r"<!--|</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>")
 TABLE_LABEL_RE = re.compile(r"^\*\*Table \d+\. \S.*\*\*$")
+FIGURE_LABEL_RE = re.compile(r"^\*\*Figure (\d+)\. \S.*\*\*$")
 SEP_CELL_RE = re.compile(r"^-{3,}:?$")
 CALLOUT_RE = re.compile(r"^ {0,3}>\s*\*\*([^*]+?)\*\*")
 ALERT_RE = re.compile(r"^ {0,3}>\s*\[![A-Za-z]+\]")
@@ -280,6 +281,31 @@ def check_links(doc):
     return bad, f"{count} link(s): relative paths resolve, fragments match headings"
 
 
+def check_figures(doc):
+    bad = []
+    count = 0
+    for num, line in doc.outside():
+        for m in LINK_RE.finditer(strip_code(line)):
+            if not m.group(0).startswith("!"):
+                continue
+            count += 1
+            alt = m.group(0)[2 : m.group(0).index("](")].strip()
+            if not alt:
+                bad.append(f"line {num}: image has no alt text")
+            prev = next((doc.lines[j].strip() for j in range(num - 2, -1, -1) if doc.lines[j].strip()), "")
+            label = FIGURE_LABEL_RE.match(prev)
+            if not label:
+                bad.append(f"line {num}: no **Figure N. ...** label line above the image")
+            elif int(label.group(1)) != count:
+                bad.append(f"line {num}: Figure {label.group(1)}, expected Figure {count}")
+            target = m.group(1)
+            if not target or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target) or target.startswith(("/", "#")):
+                bad.append(f"line {num}: image path {target[:40] or '(empty)'} is not a relative file path")
+            elif not (doc.path.parent / target.split("#", 1)[0].split("?", 1)[0]).is_file():
+                bad.append(f"line {num}: image {target} does not resolve")
+    return bad, f"{count} figure(s) have alt text, a **Figure N.** label in order and a relative path that resolves"
+
+
 def prose_items(doc):
     for num, line in doc.outside():
         text = LINK_TARGET_RE.sub("]", strip_code(line))
@@ -300,6 +326,7 @@ CHECKS = [
     ("heading-text", check_heading_text),
     ("list-markers", check_list_markers),
     ("tables", check_tables),
+    ("figures", check_figures),
     ("fence-language", check_fence_language),
     ("callouts", check_callouts),
     ("html", check_html),

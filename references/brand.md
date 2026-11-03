@@ -60,7 +60,7 @@ Mark left, section right, the site layout (picker option A).
 Left statement with accent bar, the site layout (picker option A).
 
 - Full-height 6px accent bar (#7a2e2e) on the left edge.
-- Text block starts about one third down the page, left aligned: eyebrow "Data With Dillon" (IBM Plex Mono, uppercase, letter spacing 0.08em, #6f6b64), then the title (DM Sans 700, letter spacing -0.02em, line height 1.05, #111110, kept to about 9 characters wide per line), then the subtitle (#44403b).
+- Text block starts about one third down the page, left aligned: eyebrow "Data With Dillon" (IBM Plex Mono, uppercase, letter spacing 0.08em, #6f6b64), then the title (DM Sans 700, letter spacing -0.02em, line height 1.05, #111110, kept to a narrow block of about 9 to 13 characters per line; each format file gives its figure), then the subtitle (#44403b).
 - Date at bottom left in IBM Plex Mono, uppercase, letter spacing 0.08em, #6f6b64.
 
 ## Callouts
