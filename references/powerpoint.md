@@ -4,28 +4,62 @@ Rules for writing a .pptx in the DWD brand. Read [brand.md](brand.md) first; thi
 
 ## Start from the template
 
-Open `assets/dwd-template.pptx` (python-pptx: `Presentation("assets/dwd-template.pptx")`) and add slides from its layouts. The template holds the slide size, the master, the six layouts, the theme colours and fonts, and the DWD Table style. `assets/dwd-sample.pptx` uses each layout once. Never restyle text by hand when a layout or placeholder already sets it.
+Open `assets/dwd-template.pptx` (python-pptx: `Presentation("assets/dwd-template.pptx")`) and add slides from its layouts. The template holds the slide size, the master, the seven layouts, the theme colours and fonts, and the DWD Table style. `assets/dwd-sample.pptx` uses each layout and each helper. No direct font, size or colour changes on placeholder text: the master and layouts set them. The helpers in `scripts/dwd_pptx.py` are the allowed exceptions for tables, charts, images and callouts; do not add others.
 
-To change the template, edit `scripts/build_powerpoint.py` and run it. Do not edit the .pptx files by hand.
+Slide size: 16:9 widescreen, 13.333 x 7.5 in (33.867 x 19.05 cm), side margins 0.6 in. Do not change it. To change the template, edit `scripts/build_powerpoint.py` and run it. Do not edit the .pptx files by hand.
 
-## Slide size
+## Helpers
 
-16:9 widescreen, 13.333 x 7.5 in (33.867 x 19.05 cm). Side margins 0.6 in. Do not change the size.
+`scripts/dwd_pptx.py` needs only python-pptx and lxml and does nothing at import. Add the scripts folder to the path, then import it: `sys.path.insert(0, "scripts")`, `import dwd_pptx`.
+
+- `layout_named(prs, name)`: the layout with that name.
+- `add_hf(slide, types, values)`: copies the footer (`"ftr"`), slide number (`"sldNum"`) or date (`"dt"`) placeholders onto the slide; `values` maps `"ftr"` and `"dt"` to their text.
+- `set_lines(frame, lines)`: fills a text frame from `(level, text)` pairs; level 0 or 1.
+- `add_table(slide, placeholder, rows, numeric_cols=None)`: a DWD Table in the placeholder's place. `numeric_cols` lists the column indexes to right align; left out, a column is numeric when every body cell is a number.
+- `add_chart(placeholder, chart_type, data, palette="categorical")`: a native chart, styled; returns the graphic frame.
+- `add_image(slide, path, caption)`: on the Picture layout, the picture fitted into the box with the caption as alt text and as the caption line.
+- `add_callout(slide, placeholder, text)`: the brand callout in the placeholder's place.
+- `set_core(prs, title)`: sets the title, author and fixed dates in the file properties.
+
+## Starter
+
+```python
+import sys; sys.path.insert(0, "scripts")
+import dwd_pptx as d
+from pptx import Presentation
+prs = Presentation("assets/dwd-template.pptx")
+foot = {"ftr": "Sales review", "dt": "November 2026"}
+s = prs.slides.add_slide(d.layout_named(prs, "Title"))
+s.shapes.title.text = "Sales review"
+s.placeholders[1].text = "One line on what the deck is"
+d.add_hf(s, {"dt"}, foot)
+s = prs.slides.add_slide(d.layout_named(prs, "Section"))
+s.shapes.title.text = "1 - Summary"
+d.add_hf(s, {"ftr", "sldNum"}, foot)
+s = prs.slides.add_slide(d.layout_named(prs, "Title and Content"))
+s.shapes.title.text = "What changed"
+d.set_lines(s.placeholders[1].text_frame, [(0, "Reminders went out after 30 days")])
+d.add_hf(s, {"ftr", "sldNum"}, foot)
+s = prs.slides.add_slide(d.layout_named(prs, "Closing"))
+s.shapes.title.text = "Thank you"
+prs.save("dwd-sales-review.pptx")
+```
 
 ## Layouts
 
-Use only these layouts, by name (python-pptx: the layout whose `.name` matches).
+Use only these layouts, by name (`layout_named`).
 
 | Layout | Use | Placeholders |
 | --- | --- | --- |
-| Title | First slide | title, subtitle (idx 1), date (idx 10) |
+| Title | First slide | title, subtitle (idx 1), date (idx 10) via `add_hf(slide, {"dt"}, {"dt": "November 2026"})` |
 | Section | Start of each section | title "N - Name", one line of text (idx 1) |
 | Title and Content | Most slides | title, content (idx 1) |
 | Two Content | Side by side, for example a table and its points | title, left (idx 1), right (idx 2) |
 | Chart | One chart per slide | title, chart (idx 13), caption (idx 14) |
+| Picture | One image per slide | title, picture (idx 13), caption (idx 14) |
 | Closing | Last slide | title, text (idx 1) |
 
-Title and Closing have the 6px #7a2e2e bar on the left edge and the "Data With Dillon" eyebrow, like the cover page in brand.md. They have no footer. Every other layout has the footer.
+Title and Closing have the 0.08 in (5.76pt) #7a2e2e bar on the left edge and the "Data With Dillon" eyebrow, like the cover page in brand.md. They have no footer. Every other layout has the footer.
 
 ## Fonts
 
@@ -35,7 +69,7 @@ Title and Closing have the 6px #7a2e2e bar on the left edge and the "Data With D
 | Body, tables, charts | Aptos (theme body font) | Calibri |
 | Eyebrow, footer, captions | IBM Plex Mono | Consolas |
 
-The theme names DM Sans and Aptos, so text set to the theme fonts picks them up. When the deck goes to readers outside DWD and must look the same everywhere, set `HEAD_FONT`, `BODY_FONT` and `MONO_FONT` in the script to the fallbacks and rebuild under a new file name. Never embed fonts.
+The theme names DM Sans and Aptos, so text set to the theme fonts picks them up. On a machine without them PowerPoint substitutes a font; the fallback column is what readers outside DWD will most likely see. DM Sans, Aptos and IBM Plex Mono are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the theme because of it. Never embed fonts.
 
 ## Text sizes
 
@@ -47,86 +81,77 @@ The theme names DM Sans and Aptos, so text set to the theme fonts picks them up.
 | Subtitle, section text | 20pt | #44403b |
 | Body level 1 | 20pt | #111110 |
 | Body level 2 | 18pt | #111110 |
-| Body level 3 | 16pt | #111110 |
 | Table text | 16pt (14pt at the least) | #111110 |
 | Chart labels | 12pt | #44403b |
 | Eyebrow, date | IBM Plex Mono 12pt, caps | #6f6b64 |
 | Footer, caption | IBM Plex Mono 9pt and 10pt, caps | #6f6b64 |
 
-These come from the master and layouts; do not set them by hand. Keep titles to one line.
+These come from the master and layouts; do not set them by hand.
+
+## Titles
+
+One line: about 50 characters at 28pt across the 12.1 in title box. If a title runs over, shorten it; if it cannot be shortened, split the slide; if neither works, say so in your reply. Never shrink the inherited size.
 
 ## Colours
 
 - Slide background: Paper #fafaf8.
 - Titles: Accent #7a2e2e. Cover and closing titles: Ink #111110.
 - Body text: Ink #111110. Secondary text: Ink 2 #44403b. Labels, footer, captions: Ink 3 #6f6b64.
-- Rules and table lines: #e3e1db.
+- Rules and table lines: #e3e1db, 0.75pt.
 - Accent fills (mark, cover bar, table header): #7a2e2e.
-- Chart series, in this order (they are theme Accent 1 to 6):
-  1. #7a2e2e
-  2. #4a4239
-  3. #b8893b
-  4. #4a6b3a
-  5. #5a7a8a
-  6. #5c3a1a
-
-For ordered data use the sequential series and for above/below data the diverging series, both in brand.md.
+- Chart series, in this order (theme Accent 1 to 6): #7a2e2e, #4a4239, #b8893b, #4a6b3a, #5a7a8a, #5c3a1a. The sequential and diverging series are in brand.md.
 
 Text on an accent fill uses the theme colour Background 1 (`schemeClr bg1`), never a typed #ffffff. PowerPoint has no Automatic font colour like Word's, so the theme colour is the contrast-aware choice: it follows the theme instead of being fixed. The mark and the DWD Table header row already do this.
 
 ## Footer
 
-Content layouts show, left to right, above a 1px #e3e1db rule:
+Content layouts show a footer row at 6.98 in from the top, below a 0.75pt #e3e1db rule at 6.85 in. Left to right: the mark ("DWD" on a #7a2e2e square, IBM Plex Mono bold, on the master; do not add it again), the deck name in the footer placeholder (idx 11), for example "Quarterly sales review", and the slide number at right (idx 12, a slide number field).
 
-- The mark: "DWD" on a #7a2e2e square, IBM Plex Mono bold. It is on the master; do not add it again.
-- The deck name, in the footer placeholder (idx 11), for example "Quarterly sales review".
-- The slide number at right (placeholder idx 12, a slide number field).
-
-python-pptx does not copy the footer and slide number placeholders onto new slides. Copy them from the layout onto each slide, as `add_hf` in the script does, and put the deck name in the footer. The date shows only on the Title slide.
+python-pptx does not copy the footer and slide number placeholders onto new slides. Call `add_hf(slide, {"ftr", "sldNum"}, values)` on each content slide. The date shows only on the Title slide.
 
 ## Bullets
 
-- Level 1 is a #7a2e2e square bullet; levels 2 and 3 are #6f6b64 dashes. 6pt after each item.
-- Keep to two levels; use level 3 only when it cannot be avoided.
+- Level 1 is a #7a2e2e square bullet; level 2 is a #6f6b64 dash. 6pt after each item. Keep to these two levels (python-pptx levels 0 and 1).
 - At most six bullets per slide and about ten words per bullet. No full stop at the end of a bullet.
 - Use the Section layout, not a bullet, for a one-line statement.
 
 ## Tables
 
-1. Put the table where a content placeholder sits (same left, top and width) and remove the empty placeholder.
-2. Set the table style to DWD Table (`{7A2E2E00-D0D0-4D0D-8000-000000000001}`), header row on, banded rows off.
-3. Header row: #7a2e2e fill, bold text in theme colour Background 1, from the style. Body rows: 1px #e3e1db rule below, no vertical rules, no fills.
-4. Cell padding 6px top and bottom, 8px left and right. Text 16pt.
-5. Left align the first column and every header cell. Right align number columns in the body rows.
-6. One header row. Do not merge cells. At most 7 rows and 5 columns; split a bigger table.
+Use `add_table`. It puts the table where the placeholder sat, sets DWD Table (`{7A2E2E00-D0D0-4D0D-8000-000000000001}`) with the header row on and banded rows off, pads cells 4.5pt top and bottom and 6pt left and right, sets 16pt text, and left aligns the first column and every header cell. Pass `numeric_cols` when a text column could pass for numbers; numbers are digits with optional `%`, `$`, `+`, `-`, commas, decimals or "pts". Header row: #7a2e2e fill, bold text in theme colour Background 1. Body rows: 0.75pt #e3e1db rule below, no vertical rules, no fills. One header row, no merged cells, at most 7 rows and 5 columns; split a bigger table.
 
 ## Charts
 
-1. Use the Chart layout and insert a native chart into placeholder idx 13 (python-pptx `insert_chart`). Do not paste chart images.
-2. Fill series in the order above. Turn off series outlines.
-3. Category axis line 1px #6f6b64. Value axis: no line, gridlines 1px #e3e1db.
-4. Legend at the bottom; no chart title. Put the label in the caption placeholder: "Figure 1. Orders by quarter".
-5. One chart per slide.
+Use the Chart layout and `add_chart` with one of COLUMN_CLUSTERED, BAR_CLUSTERED, LINE, PIE or DOUGHNUT (`XL_CHART_TYPE`); other types raise ValueError. `palette` is `"categorical"`, `"sequential"` (ordered data) or `"diverging"` (above and below a midpoint), from brand.md. Column and bar get a set gap width; lines are 2.25pt with no markers; pie and doughnut colour each slice. Category axis line 0.75pt #6f6b64, value axis gridlines 0.75pt #e3e1db, legend at the bottom, no chart title. Put the label in the caption placeholder: "Figure 1. Orders by quarter". One chart per slide. Never paste chart images.
 
 ## Images
 
-- PNG or JPG at least 150 dpi at their placed size; keep the aspect ratio, never stretch.
-- Place inside the content area: 0.6 in side margins, below the title, above the footer rule.
-- No borders, shadows, reflections or rounded frames.
-- Put a caption (IBM Plex Mono, caps, #6f6b64) under any image that shows data.
+- Use the Picture layout and `add_image`. It scales the picture to fit the box, keeps the aspect ratio and left aligns it; never crop or stretch.
+- PNG or JPG at least 150 dpi at the placed size. No borders, shadows, reflections or rounded frames.
+- Every picture and chart has alt text (the caption text is fine). `add_image` sets it; for a chart, `frame._element.nvGraphicFramePr.cNvPr.set("descr", caption)`.
+
+## Callouts
+
+`add_callout` replaces a content placeholder with the brand.md callout: a 3pt #7a2e2e bar at the left edge and the text 12pt (0.17 in) to its right at the body level 1 size. No fill, no box. At most one per slide, for the one thing the reader must take away.
+
+## From brand.md
+
+Applies: palette, typography, chart palettes, voice, lists, callouts. Does not apply: page setup, header and footer, cover page geometry, body text density; the sections in this file replace them.
 
 ## Voice
 
-Pick the voice for each deck as brand.md's Voice section says. Ask when the occasion is unclear.
+Pick the voice for each deck as brand.md's Voice section says. When nobody is there to ask, default to neutral third person; ask only when an operator is available.
 
 ## Checklist before sending
 
-- Started from `assets/dwd-template.pptx`; only the six layouts above are used.
-- First slide uses Title, last slide uses Closing, and each section starts with Section ("N - Name").
-- Every content slide shows the mark, the deck name and the slide number.
-- No direct font, size or colour changes; text on accent fills uses theme colour Background 1.
-- Bullets keep to two levels and six items.
-- Every table uses DWD Table with numbers right aligned.
-- Every chart is native, uses the series order above and has a caption.
-- Nothing sits outside the side margins or below the footer rule.
+- The file started from `assets/dwd-template.pptx` (DWD Table style present).
+- Every slide uses one of the seven layouts above.
+- First slide uses Title, last slide uses Closing.
+- Every slide but Title and Closing has the deck name in the footer and a slide number.
+- No placeholder run has a direct font, size or colour.
+- Every table uses DWD Table, fits 7 rows and 5 columns, has no merged cells, and right aligns numbers.
+- Content placeholders keep to six bullets and two levels.
+- Every title is at most 55 characters.
+- Every Chart slide holds a native chart and a caption; every Picture slide has alt text and a caption.
 - File name has no spaces, for example `dwd-quarterly-sales-review.pptx`.
+- Human check: each section starts with a Section slide ("N - Name"), every chart has alt text, and nothing sits outside the side margins or below the footer rule.
+- `python scripts/check_deck.py file.pptx` passes.

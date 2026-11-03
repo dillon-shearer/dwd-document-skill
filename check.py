@@ -87,12 +87,26 @@ def check_docx():
     return "PASS", f"check_docx.py passes {len(lines)} checks on assets/dwd-sample.docx"
 
 
+def check_pptx():
+    script = ROOT / "scripts" / "check_deck.py"
+    sample = ROOT / "assets" / "dwd-sample.pptx"
+    if not script.exists() or not sample.exists():
+        return "SKIP", "scripts/check_deck.py or assets/dwd-sample.pptx not present"
+    run = subprocess.run([sys.executable, str(script), str(sample)], capture_output=True, text=True)
+    lines = run.stdout.splitlines()
+    if run.returncode != 0:
+        bad = [l for l in lines if l.startswith("FAIL")] or [run.stderr.strip().splitlines()[-1] if run.stderr.strip() else "exit " + str(run.returncode)]
+        return "FAIL", "check_deck.py on assets/dwd-sample.pptx: " + "; ".join(bad)
+    return "PASS", f"check_deck.py passes {len(lines)} checks on assets/dwd-sample.pptx"
+
+
 def main():
     checks = [
         ("skill-frontmatter", check_skill),
         ("md-links", check_links),
         ("ascii-only", check_ascii),
         ("docx-sample", check_docx),
+        ("pptx-sample", check_pptx),
     ]
     failed = False
     for name, fn in checks:

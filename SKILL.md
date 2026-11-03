@@ -18,7 +18,8 @@ format.
 - `references/excel.md`: rules for Excel workbooks (.xlsx).
 - `references/html.md`: rules for single-file HTML reports (.html).
 - `assets/`: ready-made templates, where one exists.
-- `scripts/`: the scripts that build the templates.
+- `scripts/`: the scripts that build the templates, check finished files, and
+  the PowerPoint helpers (`dwd_pptx.py`).
 
 For a format with no file under `references/` yet, apply `brand.md` and say so in
 the output.

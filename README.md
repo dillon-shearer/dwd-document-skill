@@ -10,7 +10,7 @@ Document branding skill for Data With Dillon (DWD): rules and templates any AI a
 
 ## Formats covered
 
-- Brand rules shared by all formats: in progress
+- Brand rules shared by all formats: done
 - Word (.docx): done
 - PowerPoint (.pptx): done
 - Markdown (.md): done
