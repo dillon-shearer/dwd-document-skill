@@ -26,6 +26,8 @@ MAX_ROWS = 7
 MAX_COLS = 5
 MAX_BULLETS = 6
 MAX_TITLE = 55
+MIN_FILL = 3
+FILL_LAYOUTS = ("Title and Content", "Two Content")
 ACCENT = "7A2E2E"
 TYPED_NUM_RE = re.compile(r"^\s*\d+[.)]\s")
 
@@ -134,9 +136,16 @@ def check_tables(prs):
                     continue
                 if any(p.alignment != PP_ALIGN.RIGHT for p in cell.text_frame.paragraphs):
                     bad.append(f"slide {i} '{cell.text}' not right aligned")
+        for c in range(1, cols):
+            body = [table.cell(r, c).text.strip() for r in range(1, rows)]
+            if not body or not all(NUMBER_RE.match(t) for t in body):
+                continue
+            head = table.cell(0, c)
+            if any(p.alignment != PP_ALIGN.RIGHT for p in head.text_frame.paragraphs):
+                bad.append(f"slide {i} header cell '{short(head.text)}' over a number column not right aligned")
     if bad:
         return False, "; ".join(bad[:5])
-    return True, f"{count} tables use DWD Table, fit 7x5, no merges, numbers right aligned"
+    return True, f"{count} tables use DWD Table, fit 7x5, no merges, numbers and their header cells right aligned"
 
 
 def check_bullets(prs):
@@ -218,6 +227,29 @@ def check_figures(prs):
     return True, "chart slides hold a native chart, picture slides have alt text, both have captions"
 
 
+def check_fill(prs):
+    bad = []
+    for i, slide in enumerate(prs.slides, 1):
+        if layout_name(slide) not in FILL_LAYOUTS:
+            continue
+        paras = 0
+        visual = False
+        for shape in slide.shapes:
+            if shape == slide.shapes.title or ph_type(shape) in EXEMPT_PH:
+                continue
+            if shape._element.tag == qn("p:pic") or getattr(shape, "has_table", False) and shape.has_table:
+                visual = True
+            elif getattr(shape, "has_chart", False) and shape.has_chart:
+                visual = True
+            elif shape.has_text_frame:
+                paras += sum(1 for p in shape.text_frame.paragraphs if p.text.strip())
+        if not visual and paras < MIN_FILL:
+            bad.append(f"slide {i} '{short(slide.shapes.title.text if slide.shapes.title else '')}' holds {paras} paragraph{'' if paras == 1 else 's'} and no table, chart or picture")
+    if bad:
+        return False, "; ".join(bad)
+    return True, "every Title and Content or Two Content slide holds three paragraphs, a table, a chart or a picture"
+
+
 def check_name(path):
     if " " in path.name:
         return False, f"file name '{path.name}' has spaces"
@@ -262,6 +294,7 @@ def main():
         ("numbering", lambda: check_numbering(prs)),
         ("titles", lambda: check_titles(prs)),
         ("charts-pictures", lambda: check_figures(prs)),
+        ("fill", lambda: check_fill(prs)),
         ("file-name", lambda: check_name(path)),
     ]
     failed = False
