@@ -79,7 +79,7 @@ Write each Heading 1 as number, full stop, space, name ("2. Methods") so the hea
 2. Title: the document title. Its right indent holds 13 characters per line, so a word of 13 letters fits on one line and a longer word breaks mid-word. Titles over about 26 characters wrap to three lines, so shorten them. When the brief fixes the title and a word is longer than 13 letters, hyphenate it at a syllable (end the first part with a hyphen, then a line break run: `run.add_break()`), or, when a long word sits badly next to its neighbours, put it on its own line with a line break run before it. `check_docx.py` fails `title-width` on any Title word over 13 characters.
 3. Subtitle: one line on what the document is.
 4. Put the date in the first-page footer, `doc.sections[0].first_page_footer.paragraphs[0]` (style Cover Date). The template holds the placeholder "Month Year" there, which prints as "MONTH YEAR" if you do not replace it.
-5. Start the first Heading 1 on page 2 with `paragraph_format.page_break_before = True`. Do not add an empty paragraph or a page break run.
+5. Start the first Heading 1 on page 2 with `paragraph_format.page_break_before = True`. Set `page_break_before` on the first Heading 1 only, never on a later heading: later sections follow on the same page, and the Heading styles' keep with next stops a heading sitting alone at the foot of a page. Never add empty paragraphs or page break runs to push content down. `check_docx.py` fails `breaks` on a later Heading 1 with `pageBreakBefore` or any `w:br w:type="page"` in the body.
 
 The 6px #7a2e2e bar on the left edge is a first-page-only left page border in the template. Keep it; do not draw a shape. LibreOffice may repeat it on later odd pages; Word does not. Leave it as is.
 
@@ -87,7 +87,7 @@ The 6px #7a2e2e bar on the left edge is a first-page-only left page border in th
 
 1. Add the table and set `table.style = "DWD Table"`. Row 1 is the header row: #7a2e2e fill, bold text in font colour Automatic, repeats on each page. Also set `w:tblHeader` on row 1 yourself (`build_word.py` `add_table` shows how); do not rely on the style alone.
 2. Body rows get a 1px #e3e1db rule below; there are no vertical rules. Cell padding is built in.
-3. Left align the first column and every header cell. Right align number columns in the body rows.
+3. Each header cell takes the alignment of its column: right over a number column, left otherwise. Left align the first column, header included. Right align number columns in the body rows. `build_word.py` `add_table` shows how; `check_docx.py` fails `numbers-right` on a header cell over a number column that is not right aligned.
 4. Put a Caption paragraph under the table: "Table 1. Orders by quarter".
 5. Keep one header row. Do not merge cells or add fills to body rows.
 
@@ -131,8 +131,9 @@ Voice and prose: follow the Writing section in brand.md.
 
 - Started from `assets/dwd-template.docx`; no direct font, size or colour changes.
 - Cover has eyebrow, title, subtitle and date; the first Heading 1 starts page 2.
+- `page_break_before` is on the first Heading 1 only; no later heading has it, and there are no empty paragraphs or page break runs pushing content down.
 - Headings go H1, H2, H3 in order with no skipped level; each H1 reads "N. Name".
-- Every table uses DWD Table and has a caption; numbers are right aligned.
+- Every table uses DWD Table and has a caption; numbers and the header cells over them are right aligned; header text is font colour Automatic, never fixed white.
 - At most one callout per Heading 1 section.
 - Chart colours follow the order above.
 - Header field set: write the first Heading 1 text into the STYLEREF field's cached run (as `set_header_footer` in `build_word.py` does). The template's updateFields setting makes Word and LibreOffice refresh STYLEREF and PAGE on open. If you skip this, any viewer that trusts the cached text shows "1. Section".
