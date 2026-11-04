@@ -19,9 +19,9 @@ doc.add_paragraph("Data With Dillon", style="Cover Eyebrow")
 doc.add_paragraph("Sales review", style="Title")
 doc.add_paragraph("One line on what the document is", style="Subtitle")
 doc.sections[0].first_page_footer.paragraphs[0].text = "November 2026"
-h1 = doc.add_paragraph("1 - Summary", style="Heading 1")
+h1 = doc.add_paragraph("1. Summary", style="Heading 1")
 h1.paragraph_format.page_break_before = True
-doc.sections[0].header.paragraphs[0]._p.xpath(".//w:fldSimple//w:t")[0].text = "1 - Summary"
+doc.sections[0].header.paragraphs[0]._p.xpath(".//w:fldSimple//w:t")[0].text = "1. Summary"
 doc.save("dwd-sales-review.docx")
 ```
 
@@ -71,7 +71,7 @@ Page 1 is the cover and uses its own header and footer ("different first page" i
 - Cover header: empty. Cover footer: the date, style Cover Date, for example "November 2026".
 - Header and footer text is IBM Plex Mono 8pt, caps, letter spacing 0.08em, #6f6b64. This comes from the Header and Footer styles; do not format it by hand.
 
-Write each Heading 1 as number, space, hyphen, space, name ("2 - Methods") so the header reads like brand.md's example.
+Write each Heading 1 as number, full stop, space, name ("2. Methods") so the header reads like brand.md's example.
 
 ## Cover page recipe
 
@@ -131,11 +131,11 @@ Voice and prose: follow the Writing section in brand.md.
 
 - Started from `assets/dwd-template.docx`; no direct font, size or colour changes.
 - Cover has eyebrow, title, subtitle and date; the first Heading 1 starts page 2.
-- Headings go H1, H2, H3 in order with no skipped level; each H1 reads "N - Name".
+- Headings go H1, H2, H3 in order with no skipped level; each H1 reads "N. Name".
 - Every table uses DWD Table and has a caption; numbers are right aligned.
 - At most one callout per Heading 1 section.
 - Chart colours follow the order above.
-- Header field set: write the first Heading 1 text into the STYLEREF field's cached run (as `set_header_footer` in `build_word.py` does). The template's updateFields setting makes Word and LibreOffice refresh STYLEREF and PAGE on open. If you skip this, any viewer that trusts the cached text shows "1 - Section".
+- Header field set: write the first Heading 1 text into the STYLEREF field's cached run (as `set_header_footer` in `build_word.py` does). The template's updateFields setting makes Word and LibreOffice refresh STYLEREF and PAGE on open. If you skip this, any viewer that trusts the cached text shows "1. Section".
 - Cover date replaced; "Month Year" is gone.
 - `python scripts/check_docx.py your-file.docx` prints PASS on every line.
 - File name has no spaces, for example `dwd-quarterly-sales-review.docx`.

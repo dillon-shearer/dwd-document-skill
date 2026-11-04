@@ -61,7 +61,7 @@ The report is light. Set `color-scheme: light` on `:root` and add the color-sche
 
 ## Header block
 
-- `<header class="doc-header">` right before each `h1`, with the mark at left and the section at right ("2 - Findings", same number as the h1), 1px `--rule` line below.
+- `<header class="doc-header">` right before each `h1`, with the mark at left and the section at right ("2. Findings", same number as the h1), 1px `--rule` line below.
 - The mark is `<span class="mark">DWD</span>`: always "DWD", never "DW". Solid `--accent` fill, `--on-accent` text, IBM Plex Mono 500.
 - Header text: IBM Plex Mono 8pt, uppercase, letter spacing 0.08em, `--ink-3`.
 

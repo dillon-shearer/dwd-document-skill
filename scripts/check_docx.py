@@ -18,7 +18,7 @@ REQUIRED_STYLES = [
     "Title", "Heading1", "Heading2", "Heading3", "ListBullet", "ListNumber", "Quote",
     "Callout", "Caption", "DWDTable", "DWMark", "CoverEyebrow", "CoverDate",
 ]
-H1_RE = re.compile(r"^\d+ - \S")
+H1_RE = re.compile(r"^\d+\. \S")
 NUMBER_RE = re.compile(r"^[+-]?\$?[+-]?\d[\d,]*(\.\d+)?\s?(%|pts)?$")
 DIRECT_TAGS = ("w:rFonts", "w:sz", "w:color")
 HEAD_LEVELS = {"Heading1": 1, "Heading2": 2, "Heading3": 3}
@@ -94,8 +94,8 @@ def body_paras(doc):
 def check_h1(doc):
     bad = [para_text(p) for p in body_paras(doc) if para_style(p) == "Heading1" and not H1_RE.match(para_text(p))]
     if bad:
-        return False, "Heading 1 not 'N - Name': " + "; ".join(bad)
-    return True, "every Heading 1 reads 'N - Name'"
+        return False, "Heading 1 not 'N. Name': " + "; ".join(bad)
+    return True, "every Heading 1 reads 'N. Name'"
 
 
 def check_levels(doc):
@@ -198,8 +198,8 @@ def check_placeholders(doc):
                 refs.extend(styleref_text(part))
     if not refs:
         bad.append("no STYLEREF field in the header")
-    if any(t.strip() == "1 - Section" for t in refs):
-        bad.append("STYLEREF cached text is still '1 - Section'")
+    if any(t.strip() == "1. Section" for t in refs):
+        bad.append("STYLEREF cached text is still '1. Section'")
     if bad:
         return False, "; ".join(sorted(set(bad)))
     return True, "cover date and header section text are filled in"

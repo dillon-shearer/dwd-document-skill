@@ -34,7 +34,7 @@ s.shapes.title.text = "Sales review"
 s.placeholders[1].text = "One line on what the deck is"
 d.add_hf(s, {"dt"}, foot)
 s = prs.slides.add_slide(d.layout_named(prs, "Section"))
-s.shapes.title.text = "1 - Summary"
+s.shapes.title.text = "1. Summary"
 d.add_hf(s, {"ftr", "sldNum"}, foot)
 s = prs.slides.add_slide(d.layout_named(prs, "Title and Content"))
 s.shapes.title.text = "What changed"
@@ -52,7 +52,7 @@ Use only these layouts, by name (`layout_named`).
 | Layout | Use | Placeholders |
 | --- | --- | --- |
 | Title | First slide | title, subtitle (idx 1), date (idx 10) via `add_hf(slide, {"dt"}, {"dt": "November 2026"})` |
-| Section | Start of each section | title "N - Name", one line of text (idx 1) |
+| Section | Start of each section | title "N. Name", one line of text (idx 1) |
 | Title and Content | Most slides | title, content (idx 1) |
 | Two Content | Side by side, for example a table and its points | title, left (idx 1), right (idx 2) |
 | Chart | One chart per slide | title, chart (idx 13), caption (idx 14) |
@@ -155,5 +155,5 @@ Voice and prose: follow the Writing section in brand.md.
 - Every title is at most 55 characters.
 - Every Chart slide holds a native chart and a caption; every Picture slide has alt text and a caption.
 - File name has no spaces, for example `dwd-quarterly-sales-review.pptx`.
-- Human check: each section starts with a Section slide ("N - Name"), every chart has alt text, and nothing sits outside the side margins or below the footer rule.
+- Human check: each section starts with a Section slide ("N. Name"), every chart has alt text, and nothing sits outside the side margins or below the footer rule.
 - `python scripts/check_deck.py file.pptx` passes.

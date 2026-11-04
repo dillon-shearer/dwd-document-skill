@@ -162,6 +162,7 @@ def check_numbering(prs):
         for shape in slide.placeholders:
             if ph_type(shape) in EXEMPT_PH or not shape.has_text_frame:
                 continue
+            section_title = slide.slide_layout.name == "Section" and shape == slide.shapes.title
             for p in shape.text_frame.paragraphs:
                 ppr = p._p.pPr
                 auto = ppr is not None and ppr.find(qn("a:buAutoNum")) is not None
@@ -170,7 +171,7 @@ def check_numbering(prs):
                     srgb = clr.find(qn("a:srgbClr")) if clr is not None else None
                     if srgb is None or (srgb.get("val") or "").upper() != ACCENT:
                         bad.append(f"slide {i} '{short(p.text)}' numbered without #7a2e2e buClr")
-                if p.level == 0 and TYPED_NUM_RE.match(p.text):
+                if p.level == 0 and TYPED_NUM_RE.match(p.text) and not section_title:
                     bad.append(f"slide {i} '{short(p.text)}' has a typed number")
     if bad:
         return False, "; ".join(bad[:5])
