@@ -1,32 +1,42 @@
 # DWD Document Skill
 
-Document branding skill for Data With Dillon (DWD): rules and templates any AI agent can read to produce on-brand Word, PowerPoint and other documents. It follows the open Agent Skills format, with `SKILL.md` at the root, rules under `references/` and templates under `assets/`. Everything is plain markdown. GitHub: https://github.com/dillon-shearer/dwd-document-skill
+A document branding skill for Data With Dillon (DWD). It gives any AI agent the rules, templates and checkers to produce on-brand Word, PowerPoint, Excel, Markdown and HTML deliverables. It follows the open Agent Skills format, with `SKILL.md` at the root. GitHub: https://github.com/dillon-shearer/dwd-document-skill
 
-## How to point an agent at it
+## What is inside
+
+- `SKILL.md`: the entry point. It tells the agent which files to read for each format.
+- `references/`: `brand.md` holds the shared brand rules (palette, typography, tables, writing). Each format has its own rules file.
+- `assets/`: templates to start from and finished samples to compare against. See [assets/README.md](assets/README.md).
+- `scripts/`: build scripts for the templates and samples, one checker per format, and helper modules (`dwd_pptx.py`, `dwd_excel.py`, `dwd_prose.py`). See [scripts/README.md](scripts/README.md).
+
+| Format | Rules | Template or sample | Checker |
+| --- | --- | --- | --- |
+| Word | `references/word.md` | `assets/dwd-template.docx` | `scripts/check_docx.py` |
+| PowerPoint | `references/powerpoint.md` | `assets/dwd-template.pptx` | `scripts/check_deck.py` |
+| Excel | `references/excel.md` | `assets/dwd-template.xlsx` | `scripts/check_xlsx.py` |
+| Markdown | `references/markdown.md` | `assets/dwd-sample.md` | `scripts/check_md.py` |
+| HTML | `references/html.md` | `assets/dwd-report.html` | `scripts/check_html.py` |
+
+## Using it with an agent
 
 1. Clone the repo and tell the agent to read the folder, starting with `SKILL.md`.
-2. Give the agent the raw URL of the skill: https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/SKILL.md. This route is complete for Markdown only. Word, PowerPoint and Excel start from a template under `assets/`, so also give the raw base URL https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/ and tell the agent to fetch the rules and the template it needs from there (for example `assets/dwd-template.docx`).
-3. Install it as a Claude Code skill: copy the folder into `.claude/skills/` (for example `.claude/skills/dwd-document-skill/`) in your project or home directory.
+2. Give the agent the raw URL of the skill: https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/SKILL.md. This is enough for Markdown. Word, PowerPoint and Excel also need their template under `assets/`, so give the raw base URL https://raw.githubusercontent.com/dillon-shearer/dwd-document-skill/main/ as well and tell the agent to fetch the rules and template it needs from there (for example `assets/dwd-template.docx`).
+3. For Claude Code, copy the folder into `.claude/skills/` (for example `.claude/skills/dwd-document-skill/`) in your project or home directory.
 
-## Formats covered
-
-- Brand rules shared by all formats: done
-- Word (.docx): done
-- PowerPoint (.pptx): done
-- Markdown (.md): done
-- Excel (.xlsx): done
-- HTML: done
-
-## Choose the brand
-
-1. Open `docs/brand-picker.html` in a browser (double-click it; no server or install needed).
-2. Pick one option in each of the 13 sections. Option A always matches the DWD website. Choices save in the browser as you go.
-3. Add anything else in the Notes box, then press Copy choices.
-4. Paste the copied block into the board notepad. If the clipboard is blocked, select the text in the Copied text box and copy it by hand.
-
-## How to check
+## Checking a finished file
 
 Run `python check.py` from the repo root. It exits 0 when every check passes or is skipped.
+
+Each checker can also run on one file:
+
+```
+python scripts/check_docx.py path/to/file.docx
+```
+
+## Requirements
+
+- Python 3.10 or later.
+- python-docx, python-pptx, openpyxl and matplotlib. The scripts that need them install them.
 
 ## License
 
