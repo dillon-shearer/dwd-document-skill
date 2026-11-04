@@ -18,7 +18,7 @@ Slide size: 16:9 widescreen, 13.333 x 7.5 in (33.867 x 19.05 cm), side margins 0
 - `add_table(slide, placeholder, rows, numeric_cols=None)`: a DWD Table in the placeholder's place. `numeric_cols` lists the column indexes to right align; left out, a column is numeric when every body cell is a number.
 - `add_chart(placeholder, chart_type, data, palette="categorical")`: a native chart, styled; returns the graphic frame.
 - `add_image(slide, path, caption)`: on the Picture layout, the picture fitted into the box with the caption as alt text and as the caption line.
-- `add_callout(slide, placeholder, text)`: the brand callout in the placeholder's place.
+- `add_callout(slide, placeholder, text, align="top")`: the brand callout in the placeholder's place. With `align="middle"` it sits level with the middle of the box.
 - `set_core(prs, title)`: sets the title, author and fixed dates in the file properties.
 
 ## Starter
@@ -118,7 +118,7 @@ python-pptx does not copy the footer and slide number placeholders onto new slid
 
 ## Tables
 
-Use `add_table`. It puts the table where the placeholder sat, sets DWD Table (`{7A2E2E00-D0D0-4D0D-8000-000000000001}`) with the header row on and banded rows off, pads cells 4.5pt top and bottom and 6pt left and right, sets 16pt text, and aligns each header cell with its column: right over a numeric column, left otherwise, so the first column and its header are always left. Pass `numeric_cols` when a text column could pass for numbers; numbers are digits with optional `%`, `$`, `+`, `-`, commas, decimals or "pts". Header row: #7a2e2e fill, bold text in theme colour Background 1. Body rows: 0.75pt #e3e1db rule below, no vertical rules, no fills. One header row, no merged cells, at most 7 rows and 5 columns; split a bigger table.
+Use `add_table`. It puts the table where the placeholder sat, sets DWD Table (`{7A2E2E00-D0D0-4D0D-8000-000000000001}`) with the header row on and banded rows off, pads cells 4.5pt top and bottom and 6pt left and right, sets 16pt text, and aligns each header cell with its column: right over a numeric column, left otherwise, so the first column and its header are always left. Row height is the placeholder height divided by the row count, at least 0.5 in and at most 0.75 in, so a short table fills the content box and a full one keeps 0.5 in rows; text stays 16pt and centred vertically in each cell. Pass `numeric_cols` when a text column could pass for numbers; numbers are digits with optional `%`, `$`, `+`, `-`, commas, decimals or "pts". Header row: #7a2e2e fill, bold text in theme colour Background 1. Body rows: 0.75pt #e3e1db rule below, no vertical rules, no fills. One header row, no merged cells, at most 7 rows and 5 columns; split a bigger table.
 
 ## Charts
 
@@ -132,12 +132,14 @@ Use the Chart layout and `add_chart` with one of COLUMN_CLUSTERED, BAR_CLUSTERED
 
 ## Callouts
 
-`add_callout` replaces a content placeholder with the brand.md callout: a 3pt #7a2e2e bar at the left edge and the text 12pt (0.17 in) to its right at the body level 1 size. No fill, no box. At most one per slide, for the one thing the reader must take away. A callout never sits alone on a slide; see Fill the slide.
+`add_callout` replaces a content placeholder with the brand.md callout: a 3pt #7a2e2e bar at the left edge and the text 12pt (0.17 in) to its right at the body level 1 size. No fill, no box. By default it sits at the top of the box. On Two Content, when the other column holds a table or chart, pass `align="middle"` so the callout sits level with the middle of the box; its height stays the same. At most one per slide, for the one thing the reader must take away. A callout never sits alone on a slide; see Fill the slide.
 
 ## Fill the slide
 
 - A callout never sits alone. Put it on Two Content next to the numbers or bullets it comes from, or next to the chart it summarises, or make the finding the one line of text on the Section slide.
 - A Title and Content slide holds at least three bullets, a table, or a callout plus bullets.
+- Table beside a callout: the table fills the box and the callout sits level with its middle (`add_callout(..., align="middle")`).
+- `check_deck.py` fails a table on Title and Content or Two Content with fewer than 7 rows whose rows are shorter than the box height divided by the row count (at most 0.75 in), within 1pt.
 - `check_deck.py` fails a Title and Content or Two Content slide whose content holds fewer than three non-empty paragraphs (a callout counts as one) and no table, chart or picture.
 
 ## From brand.md
