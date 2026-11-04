@@ -297,9 +297,9 @@ def check_headings(doc):
             continue
         parts = hdr.elements()
         right = parts[-1].text().strip() if parts else ""
-        hm = re.match(r"^(\d+) - ", right)
+        hm = re.match(r"^(\d+)\. \S", right)
         if not hm or int(hm.group(1)) != n:
-            bad.append(f"line {hdr.line}: header text \"{right}\" should start \"{n} - \"")
+            bad.append(f"line {hdr.line}: header text \"{right}\" should start \"{n}. \"")
     if n == 0:
         bad.append("line 1: no h1 sections")
     return bad, f"{n} numbered h1 sections with header blocks, no h4 to h6, no skipped levels"

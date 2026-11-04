@@ -16,7 +16,7 @@ Rules for writing a .md file (README, report, notes) in the DWD brand. Read [bra
 
 - One H1 per file (the title). Sections are H2, subsections H3. Never use H4 or deeper; split the section instead.
 - Do not skip a level (no H3 straight under H1).
-- Number H2 sections in reports: `## 2. Methods`. The dot form is the heading; `2 - Methods` is the same section as page furniture in the Word header and the PowerPoint footer. Do not number H3. READMEs and notes are not numbered. Number every H2 or none.
+- Number H2 sections in reports: `## 2. Methods`. Do not number H3. READMEs and notes are not numbered. Number every H2 or none.
 - Sentence case. No trailing punctuation. No bold or links inside a heading.
 - One blank line before and after every heading.
 

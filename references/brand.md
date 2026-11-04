@@ -51,7 +51,7 @@ The mark reads "DWD" everywhere.
 
 Mark left, section right, the site layout (picker option A).
 
-- Header: DWD mark at left (square, background #7a2e2e, white IBM Plex Mono 500 letters); section number and name at right, for example "2 - Methods". 1px #e3e1db rule under the header.
+- Header: DWD mark at left (square, background #7a2e2e, white IBM Plex Mono 500 letters); section number and name at right, for example "2. Methods". 1px #e3e1db rule under the header.
 - Footer: page number at right, nothing at left. 1px #e3e1db rule above the footer.
 - Header and footer text: IBM Plex Mono, uppercase, letter spacing 0.08em, colour #6f6b64.
 

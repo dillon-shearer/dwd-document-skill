@@ -373,7 +373,7 @@ def build_template():
     build_fonts(doc)
     build_theme(doc)
     set_page(doc)
-    set_header_footer(doc, "1 - Section", "Month Year")
+    set_header_footer(doc, "1. Section", "Month Year")
     set_settings(doc)
     clear_body(doc)
     doc.add_paragraph("")
@@ -445,11 +445,11 @@ def chart_png(labels, series, names):
 def build_sample():
     doc = docx.Document(str(TEMPLATE))
     clear_body(doc)
-    set_header_footer(doc, "1 - Summary", "November 2026")
+    set_header_footer(doc, "1. Summary", "November 2026")
     doc.add_paragraph("Data With Dillon", style="Cover Eyebrow")
     doc.add_paragraph("Quarterly review", style="Title")
     doc.add_paragraph("What twelve months of orders say about repeat customers", style="Subtitle")
-    h1 = doc.add_paragraph("1 - Summary", style="Heading 1")
+    h1 = doc.add_paragraph("1. Summary", style="Heading 1")
     h1.paragraph_format.page_break_before = True
     doc.add_paragraph(
         "Repeat customers drove most of the growth this year. New customer numbers held steady, "
@@ -477,7 +477,7 @@ def build_sample():
         "\"I came back because the second order was as easy as the first.\" - Customer survey, October",
         style="Quote",
     )
-    h1 = doc.add_paragraph("2 - Orders by week", style="Heading 1")
+    h1 = doc.add_paragraph("2. Orders by week", style="Heading 1")
     h1.paragraph_format.page_break_before = True
     doc.add_paragraph("Weekly orders for the year. The header row repeats when the table crosses a page.")
     rows = [["Week", "Orders", "Repeat share", "Change"]]
@@ -488,7 +488,7 @@ def build_sample():
         rows.append([f"Week {week}", f"{orders:,}", f"{share}%", f"{change:+d} pts"])
     add_table(doc, rows)
     doc.add_paragraph("Table 2. Orders by week", style="Caption")
-    h1 = doc.add_paragraph("3 - Trend", style="Heading 1")
+    h1 = doc.add_paragraph("3. Trend", style="Heading 1")
     h1.paragraph_format.page_break_before = True
     doc.add_paragraph("Repeat orders overtook new orders in the second quarter and stayed ahead.")
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -496,7 +496,7 @@ def build_sample():
     new = [240, 236, 241, 229, 233, 238, 231, 236, 240, 234, 237, 239]
     doc.add_picture(chart_png(months, [repeat, new], ["Repeat", "New"]), width=Inches(6.5))
     doc.add_paragraph("Figure 1. Orders by month", style="Caption")
-    h1 = doc.add_paragraph("4 - Next steps", style="Heading 1")
+    h1 = doc.add_paragraph("4. Next steps", style="Heading 1")
     h1.paragraph_format.page_break_before = True
     doc.add_paragraph("The numbered list below restarts at 1.")
     num_id = restart_numbering(doc)

@@ -257,7 +257,7 @@ def layouts():
     section_title = lvl(1, 40, "accent1", "major", bold=True, line=100000, spc=-40)
     section = [
         rect(2, "Section Bar", (LEFT, inch(2.35), inch(0.6), inch(0.06)), "accent1"),
-        ph(3, "Title", 'type="title"', (LEFT, inch(2.6), TEXT_W, inch(1.3)), lst=section_title, anchor="t", text="1 - Section name"),
+        ph(3, "Title", 'type="title"', (LEFT, inch(2.6), TEXT_W, inch(1.3)), lst=section_title, anchor="t", text="1. Section name"),
         ph(4, "Text", 'type="body" idx="1"', (LEFT, inch(4.0), inch(9), inch(1.2)), lst=sub_lst, text="One line on what the section covers"),
     ] + footer_phs()
     content = [
@@ -428,7 +428,7 @@ def build_sample():
     add_hf(s, {"dt"}, foot)
 
     s = prs.slides.add_slide(layout_named(prs, "Section"))
-    s.shapes.title.text = "1 - Summary"
+    s.shapes.title.text = "1. Summary"
     s.placeholders[1].text = "Repeat customers drove most of the growth this year."
     add_hf(s, {"ftr", "sldNum"}, foot)
 
