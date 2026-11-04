@@ -1,3 +1,10 @@
+import io
+import re
+import zipfile
+import xml.etree.ElementTree as ET
+from datetime import date, datetime
+from xml.sax.saxutils import escape
+
 from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.chart.shapes import GraphicalProperties
 from openpyxl.chart.text import RichText
@@ -6,6 +13,7 @@ from openpyxl.drawing.text import CharacterProperties, Font as DrawingFont, Para
 from openpyxl.styles import Alignment, Border, Font, NamedStyle, PatternFill, Side
 from openpyxl.styles.colors import Color
 from openpyxl.utils import get_column_letter
+from openpyxl.utils.datetime import to_excel
 from openpyxl.worksheet.properties import PageSetupProperties
 
 HEAD_FONT = "DM Sans"
@@ -141,6 +149,45 @@ def fill_formula(value, row, first, last):
     return value
 
 
+def is_pair(value):
+    return isinstance(value, tuple) and len(value) == 2
+
+
+def cached(wb):
+    if not hasattr(wb, "_dwd_cached"):
+        wb._dwd_cached = {}
+    return wb._dwd_cached
+
+
+def put(ws, row, column, value, first, last):
+    store = cached(ws.parent).setdefault(ws.title, {})
+    if is_pair(value):
+        formula, result = value
+        cell = ws.cell(row=row, column=column, value=fill_formula(formula, row, first, last))
+        if result is None:
+            store.pop(cell.coordinate, None)
+        else:
+            store[cell.coordinate] = result
+        return cell
+    cell = ws.cell(row=row, column=column, value=fill_formula(value, row, first, last))
+    store.pop(cell.coordinate, None)
+    return cell
+
+
+def column_sum(rows, index):
+    total = 0
+    for row in rows:
+        v = row[index] if index < len(row) else None
+        if is_pair(v):
+            v = v[1]
+        if v is None or v == "":
+            continue
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            return None
+        total += v
+    return total
+
+
 def header_wraps(ws, heads):
     for c, h in enumerate(heads, 1):
         text = str(h)
@@ -172,7 +219,7 @@ def add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption
     last = first_row + len(rows)
     for r, row in enumerate(rows, first):
         for c, v in enumerate(row, 1):
-            ws.cell(row=r, column=c, value=fill_formula(v, r, first, last)).style = styles[c - 1]
+            put(ws, r, c, v, first, last).style = styles[c - 1]
     nxt = last + 1
     if total is not None:
         cells = [total] if isinstance(total, str) else list(total)
@@ -181,11 +228,11 @@ def add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption
             col = get_column_letter(c)
             body = styles[c - 1]
             if c == 1:
-                ws.cell(row=nxt, column=c, value=v).style = "DWD Total Label"
+                put(ws, nxt, c, v, first, last).style = "DWD Total Label"
                 continue
             if v is None and body in ("DWD Integer", "DWD Decimal"):
-                v = f"=SUM({col}{first}:{col}{last})"
-            cell = ws.cell(row=nxt, column=c, value=fill_formula(v, nxt, first, last) if v != "" else None)
+                v = (f"=SUM({col}{first}:{col}{last})", column_sum(rows, c - 1))
+            cell = put(ws, nxt, c, v if v != "" else None, first, last)
             cell.style = TOTAL_STYLES.get(body, "DWD Total Label")
         nxt += 1
     if caption:
@@ -274,3 +321,53 @@ def finish(wb):
         if ws.title in ("Sheet", "Sheet1") and not any(c.value is not None for row in ws.iter_rows() for c in row):
             wb.remove(ws)
     return wb
+
+
+CELL_RE = re.compile(r'<c r="([A-Z]+[0-9]+)"([^>]*)>(<f[ >].*?</f>|<f[^>]*/>)(?:<v>[^<]*</v>|<v/>)?</c>', re.S)
+REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
+MAIN_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+
+
+def sheet_parts(zin):
+    rels = {}
+    for r in ET.fromstring(zin.read("xl/_rels/workbook.xml.rels")):
+        target = r.get("Target")
+        rels[r.get("Id")] = target.lstrip("/") if target.startswith("/") else "xl/" + target
+    book = ET.fromstring(zin.read("xl/workbook.xml"))
+    return {s.get("name"): rels.get(s.get(REL_NS)) for s in book.iter(MAIN_NS + "sheet")}
+
+
+def value_xml(attrs, value):
+    attrs = re.sub(r'\s+t="[^"]*"', "", attrs)
+    if isinstance(value, bool):
+        return attrs + ' t="b"', "1" if value else "0"
+    if isinstance(value, (datetime, date)):
+        value = to_excel(value)
+    if isinstance(value, (int, float)):
+        return attrs, repr(value) if isinstance(value, float) else str(value)
+    return attrs + ' t="str"', escape(str(value))
+
+
+def fill_cached(xml, values):
+    def sub(m):
+        if m.group(1) not in values:
+            return m.group(0)
+        attrs, text = value_xml(m.group(2), values[m.group(1)])
+        return f'<c r="{m.group(1)}"{attrs}>{m.group(3)}<v>{text}</v></c>'
+    return CELL_RE.sub(sub, xml)
+
+
+def save(wb, path):
+    finish(wb)
+    buf = io.BytesIO()
+    wb.save(buf)
+    store = cached(wb)
+    with zipfile.ZipFile(io.BytesIO(buf.getvalue())) as zin:
+        parts = {part: store.get(name, {}) for name, part in sheet_parts(zin).items() if part}
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zout:
+            for info in zin.infolist():
+                data = zin.read(info.filename)
+                if parts.get(info.filename):
+                    data = fill_cached(data.decode("utf-8"), parts[info.filename]).encode("utf-8")
+                zout.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED)
+    return path
