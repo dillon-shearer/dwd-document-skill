@@ -15,10 +15,11 @@ To change the template, edit `scripts/build_excel.py` and run it. Do not edit th
 - `setup_sheet(ws, name, title, subtitle, when, landscape=False)`: renames a sheet and sets the title block, row heights, freeze pane, gridlines off, print setup, print titles and header and footer.
 - `new_sheet(wb, name, title, subtitle, when, landscape=False)`: a new sheet with all of `setup_sheet` applied; returns it. `landscape` flips the orientation only.
 - `set_widths(ws, widths)`: column widths from column A, in Excel character units. Set them before `add_table`.
-- `add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption=None, autofilter=False, title=None)`: `title` in DWD Table Title in column A on the row above the header row, header row, body rows with one style name per column in `styles`, an optional total row, the caption on the next row, and an AutoFilter on header and body when `autofilter` is true. `total` is the label, or a list with the label first and one entry per column: `None` for the default (SUM for integer and decimal columns, empty otherwise), `""` for empty, or a formula. In formulas `{row}`, `{first}` and `{last}` become the current, first body and last body row. Clears leftover template header cells to the right of `heads`, and the template's table title when `title` is not given. Raises the header row to 30 when a header is longer than its column or holds a newline. Returns `(first_body_row, last_body_row, next_free_row)`.
+- `add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption=None, autofilter=False, title=None)`: `title` in DWD Table Title in column A on the row above the header row, header row, body rows with one style name per column in `styles`, an optional total row, the caption on the next row, and an AutoFilter on header and body when `autofilter` is true. `total` is the label, or a list with the label first and one entry per column: `None` for the default (SUM for integer and decimal columns, empty otherwise), `""` for empty, or a formula. Any body or total cell can be a `(formula, value)` pair: the formula goes in the cell and `value`, computed in Python, is kept for `save` to write as the cached result. A default SUM total gets its value from the body rows. In formulas `{row}`, `{first}` and `{last}` become the current, first body and last body row. Clears leftover template header cells to the right of `heads`, and the template's table title when `title` is not given. Raises the header row to 30 when a header is longer than its column or holds a newline. Returns `(first_body_row, last_body_row, next_free_row)`.
 - `add_chart(ws, kind, first, last, ncols, anchor, palette="categorical", label_col=1)`: a native chart over body rows `first` to `last`, labels in `label_col`, series in the next `ncols - 1` columns. `kind` is "column", "bar" or "line"; the legend sits at the top and does not overlay the plot area. Returns the chart.
 - `chart_text(size, color, bold=False)`: the rich text block the charts use for axis and legend text.
-- `finish(wb)`: sets `fullCalcOnLoad` and drops any empty sheet still named "Sheet" or "Sheet1". Call it before `save`.
+- `finish(wb)`: sets `fullCalcOnLoad` and drops any empty sheet still named "Sheet" or "Sheet1".
+- `save(wb, path)`: calls `finish`, saves with openpyxl, then writes each pair's value into its formula cell as the cached value. Use it instead of `wb.save`.
 
 ## Starter
 
@@ -36,8 +37,7 @@ first, last, nxt = d.add_table(ws, ["Region", "Q1", "Q2"], [["North", 1240, 1315
     title="Orders by region")
 d.add_chart(ws, "column", first, last, 3, f"A{nxt + 1}")
 ws.cell(row=nxt + 19, column=1, value="Figure 1. Orders by region").style = "DWD Caption"
-d.finish(wb)
-wb.save("dwd-orders-by-region.xlsx")
+d.save(wb, "dwd-orders-by-region.xlsx")
 ```
 
 ## Fonts
@@ -111,7 +111,7 @@ A total row puts its label in DWD Total Label and each total in the Total style 
 
 ## Formulas and data
 
-- Calculated cells stay formulas. `finish` sets `fullCalcOnLoad`, so Excel computes them on open.
+- Calculated cells stay formulas, and every formula is written with its computed value: pass a `(formula, value)` pair to `add_table` and save with `save`. Excel opens any file from email or a download in Protected View, which does not recalculate, so a formula with no cached value shows blank there, and so does any chart that reads it. `fullCalcOnLoad` stays set, so Excel recomputes once editing is enabled. Example: `("=E{row}/SUM(B{row}:E{row})", q4 / year)`.
 - A blank cell means missing; 0 means zero. Never swap them.
 - Note the data source and units in A3 or the caption.
 - Do not re-save the file through LibreOffice to recalculate it. It drops the Automatic header colour, reorders the named styles so openpyxl cannot resolve them, and rewrites the theme. If cached values are needed, compute them in Python and write both.
@@ -149,6 +149,7 @@ d.set_widths(ws, [24, 60])
 d.add_table(ws, ["Label", "Note"], [["Key point", "Online grew fastest."], ["Source", "Order system export."],
     ["Step 1", "Export the order lines."], ["Quote", '"Returns are booked on arrival." Finance team']],
     ["DWD Text", "DWD Text Wrap"], caption="Table 2. Notes", title="Notes")
+d.save(wb, "dwd-orders-by-region.xlsx")
 ```
 
 ## Wide sheets
@@ -189,6 +190,7 @@ Each line is one `check_xlsx.py` check unless marked human.
 - Chart series use brand colours; no chart titles.
 - A Notes sheet holds one table; column A labels are Note, Key point, Warning, Summary, Quote, Step N or a one or two word topic; Step rows run in order from 1; at most one Key point.
 - `fullCalcOnLoad` is set when the workbook holds formulas.
+- Every formula cell carries a cached value, so Protected View shows numbers and charts.
 - No sheet named Sheet or Sheet1; file name has no spaces, for example `dwd-orders-by-region.xlsx`.
 - Human: the palette fits the data (sequential for ordered, diverging for signed), blanks mean missing, sources and units are stated.
 - `python scripts/check_xlsx.py file.xlsx` passes.
