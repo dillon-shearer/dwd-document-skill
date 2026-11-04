@@ -485,10 +485,7 @@ def build_sample():
         ["Search", "Free shipping", "540"],
         ["Social", "Returns window", "450"],
     ], numeric_cols=[2])
-    set_lines(s.placeholders[2].text_frame, [
-        (0, "Email reminders brought the most orders"),
-        (0, "Search and social follow close behind"),
-    ])
+    add_callout(s, s.placeholders[2], "Email reminders brought the most Q4 orders: 620 of 1,610.", align="middle")
     add_hf(s, {"ftr", "sldNum"}, foot)
 
     s = prs.slides.add_slide(layout_named(prs, "Chart"))

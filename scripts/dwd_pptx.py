@@ -7,7 +7,7 @@ from xml.sax.saxutils import escape
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION, XL_MARKER_STYLE
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.enum.text import MSO_AUTO_SIZE, PP_ALIGN
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
 from pptx.parts.image import Image
@@ -45,6 +45,9 @@ CALLOUT_GAP = Pt(12)
 CALLOUT_PAD = Pt(1.5)
 CALLOUT_SIZE = 20
 CALLOUT_LINE = 1.45
+
+ROW_MIN = 457200
+ROW_MAX = 685800
 
 
 def is_number(text):
@@ -109,9 +112,10 @@ def add_table(slide, placeholder, rows, numeric_cols=None):
         body = rows[1:]
         numeric_cols = [c for c in range(1, len(rows[0])) if body and all(is_number(row[c]) for row in body)]
     numeric = set(numeric_cols) - {0}
-    x, y, w = placeholder.left, placeholder.top, placeholder.width
+    x, y, w, h = placeholder.left, placeholder.top, placeholder.width, placeholder.height
     placeholder._element.getparent().remove(placeholder._element)
-    shape = slide.shapes.add_table(len(rows), len(rows[0]), x, y, w, Emu(457200 * len(rows)))
+    row_h = max(ROW_MIN, min(ROW_MAX, int(h) // len(rows)))
+    shape = slide.shapes.add_table(len(rows), len(rows[0]), x, y, w, Emu(row_h * len(rows)))
     tbl_pr = shape.table._tbl.tblPr
     tbl_pr.set("firstRow", "1")
     tbl_pr.set("bandRow", "0")
@@ -123,10 +127,13 @@ def add_table(slide, placeholder, rows, numeric_cols=None):
             cell.text = value
             cell.margin_left = cell.margin_right = Pt(6)
             cell.margin_top = cell.margin_bottom = Pt(4.5)
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
             para = cell.text_frame.paragraphs[0]
             para.alignment = PP_ALIGN.RIGHT if c in numeric else PP_ALIGN.LEFT
             for run in para.runs:
                 run.font.size = Pt(16)
+    for row in table.rows:
+        row.height = Emu(row_h)
     return table
 
 
@@ -199,13 +206,17 @@ def add_image(slide, path, caption):
     return pic
 
 
-def add_callout(slide, placeholder, text):
-    x, y, w = placeholder.left, placeholder.top, placeholder.width
+def add_callout(slide, placeholder, text, align="top"):
+    if align not in ("top", "middle"):
+        raise ValueError('align must be "top" or "middle"')
+    x, y, w, box_h = placeholder.left, placeholder.top, placeholder.width, placeholder.height
     placeholder._element.getparent().remove(placeholder._element)
     text_w = w - CALLOUT_BAR - CALLOUT_GAP
     per_line = max(1, int(text_w / Pt(CALLOUT_SIZE * 0.5)))
     lines = max(1, math.ceil(len(text) / per_line))
     height = Emu(int(lines * Pt(CALLOUT_SIZE * CALLOUT_LINE)) + 2 * CALLOUT_PAD)
+    if align == "middle":
+        y = Emu(int(y) + (int(box_h) - int(height)) // 2)
     bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, CALLOUT_BAR, height)
     bar._element.remove(bar._element.find(qn("p:style")))
     bar.name = "Callout Bar"

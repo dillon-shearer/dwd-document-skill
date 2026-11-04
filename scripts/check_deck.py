@@ -30,6 +30,8 @@ MIN_FILL = 3
 FILL_LAYOUTS = ("Title and Content", "Two Content")
 ACCENT = "7A2E2E"
 TYPED_NUM_RE = re.compile(r"^\s*\d+[.)]\s")
+ROW_MAX = 685800
+ROW_TOL = 12700
 
 
 def layout_name(slide):
@@ -113,6 +115,32 @@ def tables(prs):
                 yield i, shape.table
 
 
+def content_box(slide, shape):
+    boxes = [p for p in slide.slide_layout.placeholders if p.placeholder_format.idx in (1, 2)]
+    if not boxes:
+        return None
+    return min(boxes, key=lambda p: abs(p.left - shape.left) + abs(p.top - shape.top))
+
+
+def short_rows(prs):
+    bad = []
+    for i, slide in enumerate(prs.slides, 1):
+        if layout_name(slide) not in FILL_LAYOUTS:
+            continue
+        for shape in slide.shapes:
+            if not shape.has_table:
+                continue
+            rows = shape.table.rows
+            box = content_box(slide, shape)
+            if box is None or len(rows) >= MAX_ROWS:
+                continue
+            want = min(ROW_MAX, box.height // len(rows))
+            low = [r.height for r in rows if r.height < want - ROW_TOL]
+            if low:
+                bad.append(f"slide {i} rows at {low[0] / 914400:.2f} in, want {want / 914400:.2f} in to fill the box")
+    return bad
+
+
 def check_tables(prs):
     bad = []
     count = 0
@@ -143,9 +171,10 @@ def check_tables(prs):
             head = table.cell(0, c)
             if any(p.alignment != PP_ALIGN.RIGHT for p in head.text_frame.paragraphs):
                 bad.append(f"slide {i} header cell '{short(head.text)}' over a number column not right aligned")
+    bad.extend(short_rows(prs))
     if bad:
         return False, "; ".join(bad[:5])
-    return True, f"{count} tables use DWD Table, fit 7x5, no merges, numbers and their header cells right aligned"
+    return True, f"{count} tables use DWD Table, fit 7x5, no merges, numbers and their header cells right aligned, short tables fill the box"
 
 
 def check_bullets(prs):
