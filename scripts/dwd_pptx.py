@@ -124,7 +124,7 @@ def add_table(slide, placeholder, rows, numeric_cols=None):
             cell.margin_left = cell.margin_right = Pt(6)
             cell.margin_top = cell.margin_bottom = Pt(4.5)
             para = cell.text_frame.paragraphs[0]
-            para.alignment = PP_ALIGN.RIGHT if r > 0 and c in numeric else PP_ALIGN.LEFT
+            para.alignment = PP_ALIGN.RIGHT if c in numeric else PP_ALIGN.LEFT
             for run in para.runs:
                 run.font.size = Pt(16)
     return table

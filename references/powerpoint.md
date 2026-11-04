@@ -118,7 +118,7 @@ python-pptx does not copy the footer and slide number placeholders onto new slid
 
 ## Tables
 
-Use `add_table`. It puts the table where the placeholder sat, sets DWD Table (`{7A2E2E00-D0D0-4D0D-8000-000000000001}`) with the header row on and banded rows off, pads cells 4.5pt top and bottom and 6pt left and right, sets 16pt text, and left aligns the first column and every header cell. Pass `numeric_cols` when a text column could pass for numbers; numbers are digits with optional `%`, `$`, `+`, `-`, commas, decimals or "pts". Header row: #7a2e2e fill, bold text in theme colour Background 1. Body rows: 0.75pt #e3e1db rule below, no vertical rules, no fills. One header row, no merged cells, at most 7 rows and 5 columns; split a bigger table.
+Use `add_table`. It puts the table where the placeholder sat, sets DWD Table (`{7A2E2E00-D0D0-4D0D-8000-000000000001}`) with the header row on and banded rows off, pads cells 4.5pt top and bottom and 6pt left and right, sets 16pt text, and aligns each header cell with its column: right over a numeric column, left otherwise, so the first column and its header are always left. Pass `numeric_cols` when a text column could pass for numbers; numbers are digits with optional `%`, `$`, `+`, `-`, commas, decimals or "pts". Header row: #7a2e2e fill, bold text in theme colour Background 1. Body rows: 0.75pt #e3e1db rule below, no vertical rules, no fills. One header row, no merged cells, at most 7 rows and 5 columns; split a bigger table.
 
 ## Charts
 
@@ -132,7 +132,13 @@ Use the Chart layout and `add_chart` with one of COLUMN_CLUSTERED, BAR_CLUSTERED
 
 ## Callouts
 
-`add_callout` replaces a content placeholder with the brand.md callout: a 3pt #7a2e2e bar at the left edge and the text 12pt (0.17 in) to its right at the body level 1 size. No fill, no box. At most one per slide, for the one thing the reader must take away.
+`add_callout` replaces a content placeholder with the brand.md callout: a 3pt #7a2e2e bar at the left edge and the text 12pt (0.17 in) to its right at the body level 1 size. No fill, no box. At most one per slide, for the one thing the reader must take away. A callout never sits alone on a slide; see Fill the slide.
+
+## Fill the slide
+
+- A callout never sits alone. Put it on Two Content next to the numbers or bullets it comes from, or next to the chart it summarises, or make the finding the one line of text on the Section slide.
+- A Title and Content slide holds at least three bullets, a table, or a callout plus bullets.
+- `check_deck.py` fails a Title and Content or Two Content slide whose content holds fewer than three non-empty paragraphs (a callout counts as one) and no table, chart or picture.
 
 ## From brand.md
 
@@ -149,7 +155,8 @@ Voice and prose: follow the Writing section in brand.md.
 - First slide uses Title, last slide uses Closing.
 - Every slide but Title and Closing has the deck name in the footer and a slide number.
 - No placeholder run has a direct font, size or colour.
-- Every table uses DWD Table, fits 7 rows and 5 columns, has no merged cells, and right aligns numbers.
+- Every table uses DWD Table, fits 7 rows and 5 columns, has no merged cells, and right aligns numbers and the header cells over them.
+- Fill the slide: no callout alone; every Title and Content or Two Content slide holds three paragraphs, a table, a chart or a picture.
 - Content placeholders keep to six bullets and two levels.
 - Numbered lists use `set_lines(..., numbered=True)`: numbers in #7a2e2e, none typed into the text.
 - Every title is at most 55 characters.

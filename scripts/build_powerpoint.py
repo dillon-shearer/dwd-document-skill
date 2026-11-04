@@ -452,9 +452,14 @@ def build_sample():
     ], numbered=True)
     add_hf(s, {"ftr", "sldNum"}, foot)
 
-    s = prs.slides.add_slide(layout_named(prs, "Title and Content"))
+    s = prs.slides.add_slide(layout_named(prs, "Two Content"))
     s.shapes.title.text = "The main finding"
-    add_callout(s, s.placeholders[1], "Repeat customers placed 47% of Q4 orders, up from 38% in Q1.")
+    set_lines(s.placeholders[1].text_frame, [
+        (0, "Repeat share of orders: 38% in Q1"),
+        (0, "Repeat share of orders: 47% in Q4"),
+        (0, "New customer orders grew 11%"),
+    ])
+    add_callout(s, s.placeholders[2], "Repeat customers placed 47% of Q4 orders, up from 38% in Q1.")
     add_hf(s, {"ftr", "sldNum"}, foot)
 
     s = prs.slides.add_slide(layout_named(prs, "Two Content"))
