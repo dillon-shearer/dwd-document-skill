@@ -16,11 +16,11 @@ except ImportError:
 STYLES = [
     "DWD Eyebrow", "DWD Title", "DWD Subtitle", "DWD Date", "DWD Header", "DWD Text", "DWD Text Wrap",
     "DWD Integer", "DWD Decimal", "DWD Percent", "DWD Date Cell", "DWD Total Label", "DWD Total Integer",
-    "DWD Total Decimal", "DWD Caption",
+    "DWD Total Decimal", "DWD Total Percent", "DWD Table Title", "DWD Caption",
 ]
-NUMBER_STYLES = {"DWD Integer", "DWD Decimal", "DWD Percent", "DWD Date Cell", "DWD Total Integer", "DWD Total Decimal"}
-STOP_STYLES = {"DWD Header", "DWD Caption", "DWD Total Label", "DWD Total Integer", "DWD Total Decimal"}
-TOTAL_STYLES = {"DWD Total Label", "DWD Total Integer", "DWD Total Decimal"}
+NUMBER_STYLES = {"DWD Integer", "DWD Decimal", "DWD Percent", "DWD Date Cell", "DWD Total Integer", "DWD Total Decimal", "DWD Total Percent"}
+STOP_STYLES = {"DWD Header", "DWD Caption", "DWD Table Title", "DWD Total Label", "DWD Total Integer", "DWD Total Decimal", "DWD Total Percent"}
+TOTAL_STYLES = {"DWD Total Label", "DWD Total Integer", "DWD Total Decimal", "DWD Total Percent"}
 BRAND = {
     "7A2E2E", "4A4239", "B8893B", "4A6B3A", "5A7A8A", "5C3A1A",
     "F3E7E4", "DFBFB8", "C4928A", "A6635B", "5C2020",
@@ -30,7 +30,8 @@ EYEBROW = "DWD - DATA WITH DILLON"
 NOTE_LABELS = {"Note", "Key point", "Warning", "Summary", "Quote"}
 STEP_RE = re.compile(r"Step (\d+)")
 TOPIC_RE = re.compile(r"[A-Za-z][A-Za-z0-9'-]*(?: [A-Za-z0-9][A-Za-z0-9'-]*)?")
-HEADER_ROW = 6
+TITLE_ROW = 6
+HEADER_ROW = 7
 
 
 def short(items, limit=6):
@@ -68,7 +69,7 @@ def check_template(wb):
         bad.append("theme colour scheme is not named DWD")
     if bad:
         bad.append("start from assets/dwd-template.xlsx")
-    return result(bad, "all fifteen DWD named styles defined; theme colour scheme is DWD")
+    return result(bad, "all seventeen DWD named styles defined; theme colour scheme is DWD")
 
 
 def check_title_block(wb):
@@ -95,7 +96,7 @@ def check_styles(wb):
     bad = []
     named = {s.name: s for s in wb._named_styles}
     for ws in wb.worksheets:
-        for c in cells_from(ws, HEADER_ROW):
+        for c in cells_from(ws, TITLE_ROW):
             where = f"{ws.title}!{c.coordinate}"
             if not c.style.startswith("DWD "):
                 bad.append(f"{where} uses style '{c.style}'")
@@ -120,12 +121,12 @@ def check_header(wb):
                 bad.append(f"{where} is not DWD Header")
             elif c.font.color is None or not c.font.color.auto:
                 bad.append(f"{where} header font colour is not Automatic")
-    return result(bad, "row 6 uses DWD Header with font colour Automatic")
+    return result(bad, "row 7 uses DWD Header with font colour Automatic")
 
 
 def tables(ws):
     rows = ws.max_row
-    for r in range(HEADER_ROW, rows + 1):
+    for r in range(TITLE_ROW, rows + 1):
         cols = [c.column for c in ws[r] if c.style == "DWD Header" and c.value is not None]
         if not cols:
             continue
@@ -150,7 +151,7 @@ def check_columns(wb):
                         used.setdefault(c.style, c.coordinate)
                 if len(used) > 1:
                     bad.append(f"{ws.title} column {ws.cell(row=head, column=col).column_letter} mixes " + ", ".join(sorted(used)))
-        for c in cells_from(ws, HEADER_ROW):
+        for c in cells_from(ws, TITLE_ROW):
             if c.style in NUMBER_STYLES and not is_formula(c.value):
                 if isinstance(c.value, bool) or not isinstance(c.value, (int, float, date, datetime)):
                     bad.append(f"{ws.title}!{c.coordinate} in {c.style} holds text")
@@ -160,13 +161,15 @@ def check_columns(wb):
 def check_totals(wb):
     bad = []
     for ws in wb.worksheets:
-        for row in ws.iter_rows(min_row=HEADER_ROW):
+        for row in ws.iter_rows(min_row=TITLE_ROW):
             if not any(c.style == "DWD Total Label" for c in row):
                 continue
             for c in row:
-                if c.style == "DWD Percent" and is_formula(c.value) and "SUM(" in c.value.upper() and "/" not in c.value:
+                if c.style == "DWD Percent":
+                    bad.append(f"{ws.title}!{c.coordinate} is a total row cell in DWD Percent; use DWD Total Percent")
+                if c.style in ("DWD Percent", "DWD Total Percent") and is_formula(c.value) and "SUM(" in c.value.upper() and "/" not in c.value:
                     bad.append(f"{ws.title}!{c.coordinate} sums percentages; use a ratio of totals")
-    return result(bad, "no total row sums a percent column")
+    return result(bad, "no total row sums a percent column; percent totals use DWD Total Percent")
 
 
 def check_merged_hidden(wb):
@@ -187,19 +190,19 @@ def check_setup(wb):
     bad = []
     for ws in wb.worksheets:
         n = ws.title
-        if ws.freeze_panes not in ("A7", "B7"):
-            bad.append(f"{n} freeze pane is {ws.freeze_panes}, want A7 or B7")
+        if ws.freeze_panes not in ("A8", "B8"):
+            bad.append(f"{n} freeze pane is {ws.freeze_panes}, want A8 or B8")
         if ws.sheet_view.showGridLines is not False:
             bad.append(f"{n} gridlines are on")
-        if (ws.print_title_rows or "").replace("$", "") != "6:6":
-            bad.append(f"{n} print titles are '{ws.print_title_rows}', want row 6")
+        if (ws.print_title_rows or "").replace("$", "") != "7:7":
+            bad.append(f"{n} print titles are '{ws.print_title_rows}', want row 7")
         fit = ws.sheet_properties.pageSetUpPr
         if not (fit and fit.fitToPage) or ws.page_setup.fitToWidth not in (1, None):
             bad.append(f"{n} does not fit to one page wide")
         hf = [p.text or "" for h in (ws.oddHeader, ws.oddFooter) for p in (h.left, h.center, h.right)]
         if not any("DWD" in t for t in hf):
             bad.append(f"{n} print header and footer lack 'DWD'")
-    return result(bad, "every sheet has the freeze pane, gridlines off, print titles row 6, one page wide and the DWD header")
+    return result(bad, "every sheet has the freeze pane, gridlines off, print titles row 7, one page wide and the DWD header")
 
 
 def anchor_cell(chart):
@@ -215,7 +218,7 @@ def anchor_cell(chart):
 
 def captions(ws, prefix):
     out = []
-    for c in cells_from(ws, HEADER_ROW):
+    for c in cells_from(ws, TITLE_ROW):
         if c.style == "DWD Caption" and isinstance(c.value, str) and re.match(prefix + r" \d+\.", c.value):
             out.append(c)
     return out
@@ -241,6 +244,16 @@ def check_captions(wb):
             else:
                 used.add(hit.coordinate)
     return result(bad, "every table has a 'Table N.' caption and every chart a 'Figure N.' caption")
+
+
+def check_table_titles(wb):
+    bad = []
+    for ws in wb.worksheets:
+        for head, cols, end in tables(ws):
+            c = ws.cell(row=head - 1, column=1)
+            if c.style != "DWD Table Title" or c.value in (None, ""):
+                bad.append(f"{ws.title} table at row {head} has no DWD Table Title at {c.coordinate}")
+    return result(bad, "every table has a DWD Table Title in column A directly above its header row")
 
 
 def color_of(fill):
@@ -339,6 +352,7 @@ def main():
         ("totals", lambda: check_totals(wb)),
         ("merged-hidden", lambda: check_merged_hidden(wb)),
         ("sheet-setup", lambda: check_setup(wb)),
+        ("table-titles", lambda: check_table_titles(wb)),
         ("captions", lambda: check_captions(wb)),
         ("charts", lambda: check_charts(wb)),
         ("notes", lambda: check_notes(wb)),

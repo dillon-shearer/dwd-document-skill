@@ -30,7 +30,8 @@ FMT_DATE = "yyyy-mm-dd"
 FMT_LONG_DATE = "d mmmm yyyy"
 
 TITLE_ROWS = 4
-HEADER_ROW = 6
+TITLE_ROW = 6
+HEADER_ROW = 7
 HEADER_HEIGHT = 22
 HEADER_WRAP_HEIGHT = 30
 LINE_WIDTH = 28575
@@ -39,7 +40,7 @@ AXIS_WIDTH = 9525
 HAIR = Side(style="thin", color="FF" + RULE)
 AXIS = Side(style="thin", color="FF" + INK3)
 
-TOTAL_STYLES = {"DWD Integer": "DWD Total Integer", "DWD Decimal": "DWD Total Decimal", "DWD Percent": "DWD Percent"}
+TOTAL_STYLES = {"DWD Integer": "DWD Total Integer", "DWD Decimal": "DWD Total Decimal", "DWD Percent": "DWD Total Percent"}
 
 
 def argb(hexv):
@@ -86,6 +87,8 @@ def styles():
         style("DWD Total Label", font(BODY_FONT, 11, INK, bold=True), border=total_rule, align=left),
         style("DWD Total Integer", font(BODY_FONT, 11, INK, bold=True), FMT_INT, border=total_rule, align=right),
         style("DWD Total Decimal", font(BODY_FONT, 11, INK, bold=True), FMT_DEC, border=total_rule, align=right),
+        style("DWD Total Percent", font(BODY_FONT, 11, INK, bold=True), FMT_PCT, border=total_rule, align=right),
+        style("DWD Table Title", font(BODY_FONT, 11, ACCENT, bold=True), align=left),
         style("DWD Caption", font(MONO_FONT, 8, INK3), align=left),
     ]
 
@@ -147,9 +150,16 @@ def header_wraps(ws, heads):
     return False
 
 
-def add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption=None, autofilter=False):
+def add_table(ws, heads, rows, styles, first_row=HEADER_ROW, total=None, caption=None, autofilter=False, title=None):
     if len(styles) != len(heads):
         raise ValueError("styles needs one style name per column")
+    above = ws.cell(row=first_row - 1, column=1)
+    if title:
+        above.value = title
+        above.style = "DWD Table Title"
+    elif above.style == "DWD Table Title":
+        above.value = None
+        above.style = "Normal"
     for c, h in enumerate(heads, 1):
         ws.cell(row=first_row, column=c, value=h).style = "DWD Header"
     c = len(heads) + 1
@@ -246,7 +256,8 @@ def add_chart(ws, kind, first, last, ncols, anchor, palette="categorical", label
         ch.x_axis.tickLblPos = "low"
     ch.x_axis.txPr = chart_text(9, INK3)
     ch.y_axis.txPr = chart_text(9, INK3)
-    ch.legend.position = "b"
+    ch.legend.position = "t"
+    ch.legend.overlay = False
     ch.legend.txPr = chart_text(9, INK2)
     ch.graphical_properties = GraphicalProperties(ln=LineProperties(noFill=True))
     ch.width = 18

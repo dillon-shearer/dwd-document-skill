@@ -19,7 +19,7 @@ from openpyxl.writer.theme import theme_xml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dwd_excel import (
-    ACCENT, BODY_FONT, CHART, HEAD_FONT, HEADER_ROW, INK, INK2, RULE,
+    ACCENT, BODY_FONT, CHART, HEAD_FONT, HEADER_ROW, INK, INK2, RULE, TITLE_ROW,
     add_chart, add_table, argb, finish, new_sheet, set_widths, setup_sheet, styles,
 )
 
@@ -68,6 +68,7 @@ def build_template():
     ws = wb.active
     setup_sheet(ws, "Sheet1", "Workbook title", "One line on what this sheet holds", date(2026, 1, 1))
     heads = ["Item", "Value 1", "Value 2", "Value 3", "Value 4"]
+    ws.cell(row=TITLE_ROW, column=1, value="Table title").style = "DWD Table Title"
     for c, h in enumerate(heads, 1):
         ws.cell(row=HEADER_ROW, column=c, value=h).style = "DWD Header"
     set_widths(ws, [24, 14, 14, 14, 14])
@@ -95,6 +96,7 @@ def build_orders(wb):
         ["DWD Text", "DWD Integer", "DWD Integer", "DWD Integer", "DWD Integer", "DWD Percent"],
         total=["Total", None, None, None, None, "=E{row}/SUM(B{row}:E{row})"],
         caption="Table 1. Orders by region and quarter",
+        title="Orders by region and quarter",
     )
     add_chart(ws, "column", first, last, 5, f"A{nxt + 1}")
     ws.cell(row=nxt + 19, column=1, value="Figure 1. Orders by region and quarter").style = "DWD Caption"
@@ -117,6 +119,7 @@ def build_notes(wb):
         ],
         ["DWD Text", "DWD Text Wrap"],
         caption="Table 2. Notes",
+        title="Notes",
     )
 
 
@@ -137,6 +140,7 @@ def build_trend(wb):
         ["DWD Text", "DWD Decimal", "DWD Decimal", "DWD Decimal"],
         total="Total",
         caption="Table 3. Revenue by month, $ millions",
+        title="Revenue by month",
     )
     add_chart(ws, "line", first, last, 4, f"A{nxt + 1}", palette="sequential")
     ws.cell(row=nxt + 19, column=1, value="Figure 2. Revenue by month, 2024 to 2026").style = "DWD Caption"
@@ -163,13 +167,14 @@ def build_raw(wb):
             "Yes" if i in (3, 8) else "No",
         ])
     ws = new_sheet(wb, "Raw", "Order lines", f"Raw order lines, October 2026, {len(rows)} rows", date(2026, 11, 3), landscape=True)
-    ws.freeze_panes = "B7"
+    ws.freeze_panes = "B8"
     heads = ["Order ID", "Date", "Region", "Channel", "Product", "Units", "Unit price", "Discount", "Revenue", "Returned"]
     set_widths(ws, [14, 14, 12, 12, 16, 10, 12, 12, 12, 12])
     add_table(
         ws, heads, rows,
         ["DWD Text", "DWD Date Cell", "DWD Text", "DWD Text", "DWD Text", "DWD Integer", "DWD Decimal", "DWD Percent", "DWD Decimal", "DWD Text"],
         caption="Table 4. Order lines, October 2026",
+        title="Order lines",
         autofilter=True,
     )
 
