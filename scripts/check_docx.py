@@ -142,19 +142,45 @@ def check_tbl_header(doc):
 def check_numbers(doc):
     bad = []
     for i, tbl in enumerate(tables(doc), 1):
-        for tr in tbl.findall(qn("w:tr"))[1:]:
+        rows = tbl.findall(qn("w:tr"))
+        for tr in rows[1:]:
             for tc in tr.findall(qn("w:tc")):
                 text = para_text(tc).strip()
-                if not NUMBER_RE.match(text):
-                    continue
-                for p in tc.findall(qn("w:p")):
-                    jc = p.find(qn("w:pPr") + "/" + qn("w:jc"))
-                    if jc is None or jc.get(qn("w:val")) not in ("right", "end"):
-                        bad.append(f"table {i} '{text}'")
-                        break
+                if NUMBER_RE.match(text) and not right_aligned(tc):
+                    bad.append(f"table {i} '{text}'")
+        if len(rows) < 2:
+            continue
+        body = [tr.findall(qn("w:tc")) for tr in rows[1:]]
+        for c, tc in enumerate(rows[0].findall(qn("w:tc"))):
+            column = [cells[c] for cells in body if c < len(cells)]
+            if column and all(NUMBER_RE.match(para_text(x).strip()) for x in column) and not right_aligned(tc):
+                bad.append(f"table {i} header '{para_text(tc).strip()}'")
     if bad:
         return False, "numbers not right aligned: " + "; ".join(bad[:5])
-    return True, "number cells in body rows are right aligned"
+    return True, "number cells in body rows and the header cells over them are right aligned"
+
+
+def right_aligned(tc):
+    for p in tc.findall(qn("w:p")):
+        jc = p.find(qn("w:pPr") + "/" + qn("w:jc"))
+        if jc is None or jc.get(qn("w:val")) not in ("right", "end"):
+            return False
+    return True
+
+
+def check_breaks(doc):
+    bad = []
+    h1s = [p for p in body_paras(doc) if para_style(p) == "Heading1"]
+    for p in h1s[1:]:
+        pbb = p.find(qn("w:pPr") + "/" + qn("w:pageBreakBefore"))
+        if pbb is not None and pbb.get(qn("w:val")) not in ("0", "false", "off"):
+            bad.append(f"Heading 1 '{para_text(p)}' has pageBreakBefore")
+    for p in doc.element.body.iter(qn("w:p")):
+        if any(br.get(qn("w:type")) == "page" for br in p.iter(qn("w:br"))):
+            bad.append(f"page break run in '{para_text(p)[:30]}'")
+    if bad:
+        return False, "; ".join(bad[:5])
+    return True, "only the first Heading 1 starts a new page; no page break runs"
 
 
 def check_name(path):
@@ -228,6 +254,7 @@ def main():
         ("title-width", lambda: check_title_width(doc)),
         ("h1-format", lambda: check_h1(doc)),
         ("heading-order", lambda: check_levels(doc)),
+        ("breaks", lambda: check_breaks(doc)),
         ("table-style-caption", lambda: check_table_style(doc)),
         ("table-header-row", lambda: check_tbl_header(doc)),
         ("numbers-right", lambda: check_numbers(doc)),
