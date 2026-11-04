@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dwd_excel import (
     ACCENT, BODY_FONT, CHART, HEAD_FONT, HEADER_ROW, INK, INK2, RULE, TITLE_ROW,
-    add_chart, add_table, argb, finish, new_sheet, set_widths, setup_sheet, styles,
+    add_chart, add_table, argb, new_sheet, save, set_widths, setup_sheet, styles,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -89,12 +89,13 @@ def build_orders(wb):
         ["Wholesale", 0, 140, 265, 310],
         ["Returns", -95, -110, -122, -138],
     ]
-    rows = [r + ["=E{row}/SUM(B{row}:E{row})"] for r in rows]
+    rows = [r + [("=E{row}/SUM(B{row}:E{row})", r[4] / sum(r[1:5]))] for r in rows]
+    sums = [sum(r[c] for r in rows) for c in range(1, 5)]
     set_widths(ws, [24, 14, 14, 14, 14, 14])
     first, last, nxt = add_table(
         ws, heads, rows,
         ["DWD Text", "DWD Integer", "DWD Integer", "DWD Integer", "DWD Integer", "DWD Percent"],
-        total=["Total", None, None, None, None, "=E{row}/SUM(B{row}:E{row})"],
+        total=["Total", None, None, None, None, ("=E{row}/SUM(B{row}:E{row})", sums[3] / sum(sums))],
         caption="Table 1. Orders by region and quarter",
         title="Orders by region and quarter",
     )
@@ -163,7 +164,7 @@ def build_raw(wb):
             1 + (i * 7) % 5,
             prices[p],
             [0, 0.05, 0.1][i % 3],
-            "=F{row}*G{row}*(1-H{row})",
+            ("=F{row}*G{row}*(1-H{row})", (1 + (i * 7) % 5) * prices[p] * (1 - [0, 0.05, 0.1][i % 3])),
             "Yes" if i in (3, 8) else "No",
         ])
     ws = new_sheet(wb, "Raw", "Order lines", f"Raw order lines, October 2026, {len(rows)} rows", date(2026, 11, 3), landscape=True)
@@ -185,14 +186,13 @@ def build_sample():
     build_notes(wb)
     build_trend(wb)
     build_raw(wb)
-    finish(wb)
-    save_stable(wb, SAMPLE)
+    save_stable(wb, SAMPLE, lambda buf: save(wb, buf))
 
 
-def save_stable(wb, path):
+def save_stable(wb, path, write=None):
     path.parent.mkdir(parents=True, exist_ok=True)
     buf = io.BytesIO()
-    wb.save(buf)
+    (write or wb.save)(buf)
     with zipfile.ZipFile(io.BytesIO(buf.getvalue())) as zin:
         items = [(info.filename, zin.read(info.filename)) for info in zin.infolist()]
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zout:

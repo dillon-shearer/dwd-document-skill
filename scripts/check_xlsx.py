@@ -323,6 +323,23 @@ def check_calc(wb):
     return True, "fullCalcOnLoad is set" if has else "no formulas"
 
 
+def check_cached(wb, path):
+    values = openpyxl.load_workbook(str(path), data_only=True)
+    bare = []
+    count = 0
+    for ws in wb.worksheets:
+        dv = values[ws.title]
+        for c in cells_from(ws, 1):
+            if is_formula(c.value):
+                count += 1
+                if dv[c.coordinate].value is None:
+                    bare.append(f"{ws.title}!{c.coordinate}")
+    if bare:
+        more = f"; and {len(bare) - 5} more" if len(bare) > 5 else ""
+        return False, "formula cells with no cached value, blank in Protected View: " + "; ".join(bare[:5]) + more + "; write (formula, value) pairs and save with dwd_excel.save(wb, path)"
+    return True, f"all {count} formula cells carry a cached value" if count else "no formulas"
+
+
 def check_names(wb, path):
     bad = [f"sheet '{ws.title}' has a default name" for ws in wb.worksheets if ws.title in ("Sheet", "Sheet1")]
     if " " in path.name:
@@ -357,6 +374,7 @@ def main():
         ("charts", lambda: check_charts(wb)),
         ("notes", lambda: check_notes(wb)),
         ("calculation", lambda: check_calc(wb)),
+        ("cached-values", lambda: check_cached(wb, path)),
         ("names", lambda: check_names(wb, path)),
     ]
     failed = False
