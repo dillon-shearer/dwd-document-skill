@@ -33,13 +33,11 @@ ASSETS = ROOT / "assets"
 TEMPLATE = ASSETS / "dwd-template.docx"
 SAMPLE = ASSETS / "dwd-sample.docx"
 
-HEAD_FONT = "DM Sans"
-BODY_FONT = "Aptos"
-MONO_FONT = "IBM Plex Mono"
+HEAD_FONT = "Schibsted Grotesk"
+BODY_FONT = "Inter"
 FALLBACKS = [
     (HEAD_FONT, "Segoe UI", "swiss", "variable"),
-    (BODY_FONT, "Calibri", "swiss", "variable"),
-    (MONO_FONT, "Consolas", "modern", "fixed"),
+    (BODY_FONT, "Segoe UI", "swiss", "variable"),
 ]
 
 INK = "111110"
@@ -163,19 +161,21 @@ def build_styles(doc):
               ppr(before=0, after=0, line=276, ind={"right": 3000}) + rpr(BODY_FONT, 14, INK2),
               ui=11)
     put_style(styles_el, "paragraph", "CoverEyebrow", "Cover Eyebrow",
-              ppr(before=3840, after=240) + rpr(MONO_FONT, 9, INK3, caps=True, spacing=14),
+              ppr(before=3840, after=240) + rpr(BODY_FONT, 9, INK, caps=True, spacing=18),
               nxt="Title", custom=True)
     put_style(styles_el, "paragraph", "CoverDate", "Cover Date",
-              ppr(before=0, after=0) + rpr(MONO_FONT, 9, INK3, caps=True, spacing=14),
+              ppr(before=0, after=0) + rpr(BODY_FONT, 9, INK3),
               custom=True)
+    put_style(styles_el, "character", "WordmarkAccent", "Wordmark Accent",
+              rpr(color=ACCENT), based=None, custom=True)
     put_style(styles_el, "paragraph", "Header", "header",
               ppr(border=("bottom", 6, 4, RULE), tabs=[("right", TEXT_W)], before=0, after=0, line=240)
-              + rpr(MONO_FONT, 8, INK3, caps=True, spacing=13))
+              + rpr(BODY_FONT, 8, INK3))
     put_style(styles_el, "paragraph", "Footer", "footer",
               ppr(border=("top", 6, 4, RULE), before=0, after=0, line=240, jc="right")
-              + rpr(MONO_FONT, 8, INK3, caps=True, spacing=13))
+              + rpr(BODY_FONT, 8, INK3))
     put_style(styles_el, "character", "DWMark", "DW Mark",
-              rpr(MONO_FONT, 8, "auto", bold=True, caps=True, spacing=13, shd=ACCENT),
+              rpr(BODY_FONT, 8, "auto", bold=True, shd=ACCENT),
               based=None, custom=True)
     put_style(styles_el, "paragraph", "ListBullet", "List Bullet",
               ppr(num=BULLET_NUM, after=90), ui=99)
@@ -190,7 +190,7 @@ def build_styles(doc):
               + rpr(BODY_FONT, 11, INK),
               nxt="Normal", custom=True)
     put_style(styles_el, "paragraph", "Caption", "caption",
-              ppr(before=80, after=200) + rpr(MONO_FONT, 8, INK3, caps=True, spacing=13),
+              ppr(before=80, after=200) + rpr(BODY_FONT, 8, INK3),
               nxt="Normal", ui=35)
     put_style(styles_el, "table", "DWDTable", "DWD Table",
               ppr(before=0, after=0, line=240)
@@ -208,6 +208,20 @@ def build_styles(doc):
               + f'<w:tcPr><w:shd w:val="clear" w:color="auto" w:fill="{ACCENT}"/></w:tcPr>'
               + "</w:tblStylePr>",
               based="TableNormal", custom=True)
+    quiet_styles(styles_el)
+
+
+def quiet_styles(styles_el):
+    for st in styles_el.findall(qn("w:style")):
+        if st.get(qn("w:styleId")) == "CoverEyebrow":
+            continue
+        for r_pr in st.iter(qn("w:rPr")):
+            for tag in ("w:caps", "w:smallCaps"):
+                for el in r_pr.findall(qn(tag)):
+                    r_pr.remove(el)
+            for el in r_pr.findall(qn("w:spacing")):
+                if int(el.get(qn("w:val"), "0")) > 0:
+                    r_pr.remove(el)
 
 
 def build_numbering(doc):
@@ -447,7 +461,8 @@ def build_sample():
     doc = docx.Document(str(TEMPLATE))
     clear_body(doc)
     set_header_footer(doc, "1. Summary", "November 2026")
-    doc.add_paragraph("Data With Dillon", style="Cover Eyebrow")
+    mark = doc.add_paragraph("Data With ", style="Cover Eyebrow")
+    mark.add_run("Dillon", style="Wordmark Accent")
     doc.add_paragraph("Quarterly review", style="Title")
     doc.add_paragraph("What twelve months of orders say about repeat customers", style="Subtitle")
     h1 = doc.add_paragraph("1. Summary", style="Heading 1")

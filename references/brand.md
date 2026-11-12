@@ -4,7 +4,7 @@ Shared brand rules for every DWD deliverable. Read this before any format file.
 
 ## Palette
 
-Oxblood and paper, the site palette (picker option A).
+Oxblood and paper, the site palette (picker option A). These values equal `styles/tokens.css` on the Data With Dillon site.
 
 - Paper: #fafaf8
 - Surface: #ffffff
@@ -18,22 +18,31 @@ Oxblood and paper, the site palette (picker option A).
 
 ## Typography
 
-- Headings: DM Sans 700, fallback 'Segoe UI', system-ui, sans-serif (picker option D).
-- Body: Aptos 400 at 11pt, fallback Calibri, Carlito, 'Segoe UI', sans-serif (picker option E, office-safe).
-- Labels, eyebrows, page furniture: IBM Plex Mono 400 or 500, fallback ui-monospace, Consolas, 'Courier New', monospace.
+Two faces, the same as the site.
+
+- Headings: Schibsted Grotesk 600, fallback 'Segoe UI', system-ui, sans-serif. Office files have no 600 weight, so they use Schibsted Grotesk bold.
+- Body, labels, captions, header and footer text, table text and numbers: Inter 400 (500 for the wordmark and the mark), fallback 'Segoe UI', system-ui, sans-serif.
+- No monospace face for labels, metadata or numbers. Use tabular figures for numbers where the format allows. Code samples alone may use the viewer's monospace (ui-monospace, Consolas, 'Courier New', monospace); it is never loaded as a brand font.
+
+## Labels and wordmark
+
+- Labels, eyebrows, captions, buttons, metadata, table headers, panel titles, header and footer text: sentence case, normal letter spacing. Never all caps, never small caps, never added letter spacing.
+- The single exception is the wordmark "Data With Dillon": Inter 500, 12px (9pt), uppercase, letter spacing 0.1em, "Data With" in ink #111110 and "Dillon" in accent #7a2e2e. Use it only where a format file says, and do not reuse its style for anything else.
+- No eyebrow that only repeats the title. No numbered index columns (01, 02) on lists.
+- No role-first tagline (such as "Data analyst and engineer") on covers or headers, and no slogan lines.
 
 ## Headings
 
 Mix of picker options C and E: accent-coloured headings, with a thin rule under H1 only.
 
-- All heading levels: DM Sans 700, colour #7a2e2e, line height 1.15, letter spacing -0.01em.
+- All heading levels: Schibsted Grotesk 600, sentence case, colour #7a2e2e, line height 1.15, letter spacing -0.01em.
 - H1: 28px, with a 1px #6f6b64 rule below, 6px padding under the text and 8px margin under the rule.
 - H2: 20px, no rule.
 - H3: 15px, no rule.
 
 ## Body text
 
-Office default density (picker option D): 11pt / 1.15 line height, colour #111110, paragraph spacing 0.6em. Aptos, fallback Calibri, Carlito, 'Segoe UI', sans-serif.
+Office default density (picker option D): 11pt / 1.15 line height, colour #111110, paragraph spacing 0.6em. Inter, fallback 'Segoe UI', system-ui, sans-serif.
 
 Bold marks a key term on first use only. That rule does not cover structural labels such as table label lines and callout labels, which are bold every time.
 
@@ -41,7 +50,7 @@ Bold marks a key term on first use only. That rule does not cover structural lab
 
 Header fill, white text (picker option B).
 
-- Header row: background #7a2e2e, text #ffffff, weight 600, left aligned.
+- Header row: background #7a2e2e, text #ffffff, weight 600, sentence case, left aligned.
 - Body rows: 1px #e3e1db bottom rule, no vertical rules.
 - Cell padding 6px 8px; first column left aligned, number columns right aligned, tabular figures.
 
@@ -51,17 +60,17 @@ The mark reads "DWD" everywhere.
 
 Mark left, section right, the site layout (picker option A).
 
-- Header: DWD mark at left (square, background #7a2e2e, white IBM Plex Mono 500 letters); section number and name at right, for example "2. Methods". 1px #e3e1db rule under the header.
+- Header: DWD mark at left (square, background #7a2e2e, white Inter 500 letters); section number and name at right, for example "2. Methods". 1px #e3e1db rule under the header.
 - Footer: page number at right, nothing at left. 1px #e3e1db rule above the footer.
-- Header and footer text: IBM Plex Mono, uppercase, letter spacing 0.08em, colour #6f6b64.
+- Header and footer text: Inter, sentence case, normal letter spacing, colour #6f6b64.
 
 ## Cover page
 
 Left statement with accent bar, the site layout (picker option A).
 
 - Full-height 6px accent bar (#7a2e2e) on the left edge.
-- Text block starts about one third down the page, left aligned: eyebrow "Data With Dillon" (IBM Plex Mono, uppercase, letter spacing 0.08em, #6f6b64), then the title (DM Sans 700, letter spacing -0.02em, line height 1.05, #111110, kept to a narrow block of about 9 to 13 characters per line; each format file gives its figure), then the subtitle (#44403b).
-- Date at bottom left in IBM Plex Mono, uppercase, letter spacing 0.08em, #6f6b64.
+- Text block starts about one third down the page, left aligned: the wordmark "Data With Dillon" (see Labels and wordmark), then the title (Schibsted Grotesk 600, letter spacing -0.02em, line height 1.05, #111110, kept to a narrow block of about 9 to 13 characters per line; each format file gives its figure), then the subtitle (#44403b), a plain line on what the document is.
+- Date at bottom left in Inter, sentence case, normal letter spacing, #6f6b64.
 
 ## Callouts
 
@@ -78,7 +87,7 @@ Site palette (picker option A). Use the series in this order.
 - Categorical: #7a2e2e, #4a4239, #b8893b, #4a6b3a, #5a7a8a, #5c3a1a
 - Sequential, light to dark: #f3e7e4, #dfbfb8, #c4928a, #a6635b, #7a2e2e, #5c2020
 - Diverging, oxblood to green: #7a2e2e, #b07a6e, #e3d3cc, #d4ddcb, #86a274, #4a6b3a
-- Axis line: 1px #6f6b64. Captions: IBM Plex Mono, uppercase, letter spacing 0.08em, #6f6b64.
+- Axis line: 1px #6f6b64. Captions and axis labels: Inter, sentence case, normal letter spacing, #6f6b64.
 
 ## Page setup
 

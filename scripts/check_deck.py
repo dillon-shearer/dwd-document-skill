@@ -53,6 +53,30 @@ def check_style(prs):
     return True, "tableStyles.xml defines DWD Table"
 
 
+def run_rgb(run):
+    clr = run._r.find(qn("a:rPr") + "/" + qn("a:solidFill") + "/" + qn("a:srgbClr"))
+    return None if clr is None else (clr.get("val") or "").upper()
+
+
+def check_wordmark(prs):
+    bad = []
+    used = {s.slide_layout.name: s.slide_layout for s in prs.slides}
+    for name in NO_FOOTER:
+        lay = used.get(name)
+        if lay is None:
+            continue
+        boxes = [sh for sh in lay.shapes if sh.name == "Eyebrow" and sh.has_text_frame]
+        runs = [r for sh in boxes for p in sh.text_frame.paragraphs for r in p.runs]
+        text = "".join(r.text for r in runs).strip()
+        accent = [r for r in runs if r.text.strip() == "Dillon"]
+        ok = accent and all(run_rgb(r) == ACCENT for r in accent)
+        if text != "Data With Dillon" or not ok:
+            bad.append(f"layout '{name}' wordmark reads '{text}' or 'Dillon' is not #{ACCENT.lower()}")
+    if bad:
+        return False, "; ".join(bad)
+    return True, "Title and Closing layouts carry the wordmark with 'Dillon' in #7a2e2e"
+
+
 def check_layouts(prs):
     bad = [f"slide {i} '{layout_name(s)}'" for i, s in enumerate(prs.slides, 1) if layout_name(s) not in LAYOUTS]
     if bad:
@@ -316,6 +340,7 @@ def main():
         ("template", lambda: check_style(prs)),
         ("layouts", lambda: check_layouts(prs)),
         ("first-last", lambda: check_ends(prs)),
+        ("wordmark", lambda: check_wordmark(prs)),
         ("footer", lambda: check_footer(prs)),
         ("direct-format", lambda: check_direct(prs)),
         ("tables", lambda: check_tables(prs)),

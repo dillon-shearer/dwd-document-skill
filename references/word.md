@@ -15,7 +15,8 @@ from docx import Document
 doc = Document("assets/dwd-template.docx")
 empty = doc.paragraphs[0]._p
 empty.getparent().remove(empty)
-doc.add_paragraph("Data With Dillon", style="Cover Eyebrow")
+mark = doc.add_paragraph("Data With ", style="Cover Eyebrow")
+mark.add_run("Dillon", style="Wordmark Accent")
 doc.add_paragraph("Sales review", style="Title")
 doc.add_paragraph("One line on what the document is", style="Subtitle")
 doc.sections[0].first_page_footer.paragraphs[0].text = "November 2026"
@@ -31,19 +32,20 @@ Use only these styles. Names are as Word shows them; python-docx takes the same 
 
 | Use | Style | Look |
 | --- | --- | --- |
-| Cover title | Title | DM Sans 700, 44pt, #111110, right indent keeps it to 13 characters per line |
-| Cover subtitle | Subtitle | Aptos 14pt, #44403b |
-| Cover eyebrow | Cover Eyebrow | IBM Plex Mono 9pt, caps, #6f6b64 |
-| Cover date | Cover Date | IBM Plex Mono 9pt, caps, #6f6b64 (first-page footer) |
-| Section | Heading 1 | DM Sans 700, 21pt, #7a2e2e, 1px #6f6b64 rule below |
-| Subsection | Heading 2 | DM Sans 700, 15pt, #7a2e2e |
-| Minor heading | Heading 3 | DM Sans 700, 11.5pt, #7a2e2e |
-| Body | Normal | Aptos 11pt, #111110, line 1.15, 6.6pt after |
+| Cover title | Title | Schibsted Grotesk bold, 44pt, #111110, right indent keeps it to 13 characters per line |
+| Cover subtitle | Subtitle | Inter 14pt, #44403b |
+| Cover wordmark | Cover Eyebrow | Inter 9pt, caps, 0.9pt (0.1em) letter spacing, #111110; the only caps style |
+| Wordmark "Dillon" | Wordmark Accent (character) | #7a2e2e, on the "Dillon" run of the wordmark only |
+| Cover date | Cover Date | Inter 9pt, #6f6b64 (first-page footer) |
+| Section | Heading 1 | Schibsted Grotesk bold, 21pt, #7a2e2e, 1px #6f6b64 rule below |
+| Subsection | Heading 2 | Schibsted Grotesk bold, 15pt, #7a2e2e |
+| Minor heading | Heading 3 | Schibsted Grotesk bold, 11.5pt, #7a2e2e |
+| Body | Normal | Inter 11pt, #111110, line 1.15, 6.6pt after |
 | Bullets | List Bullet | #7a2e2e square bullet (see Lists) |
 | Steps | List Number | #7a2e2e bold numbers |
-| Quotation | Quote | Aptos 12pt italic, #44403b, indented both sides |
+| Quotation | Quote | Inter 12pt italic, #44403b, indented both sides |
 | Key point | Callout | 3px #7a2e2e left bar, no fill |
-| Table or chart label | Caption | IBM Plex Mono 8pt, caps, #6f6b64 |
+| Table or chart label | Caption | Inter 8pt, #6f6b64, sentence case |
 | Tables | DWD Table (table style) | see Tables |
 
 Heading sizes are brand.md's 28px, 20px and 15px in points. Do not use Heading 4 or lower; split the section instead.
@@ -52,11 +54,12 @@ Heading sizes are brand.md's 28px, 20px and 15px in points. Do not use Heading 4
 
 | Role | Font | Office-safe fallback |
 | --- | --- | --- |
-| Headings, title | DM Sans | Segoe UI |
-| Body | Aptos | Calibri |
-| Labels, header, footer, captions | IBM Plex Mono | Consolas |
+| Headings, title | Schibsted Grotesk | Segoe UI |
+| Body, labels, header, footer, captions | Inter | Segoe UI |
 
-The template's font table names each fallback (`altName`), so Word swaps it in when the brand font is missing. DM Sans, Aptos and IBM Plex Mono are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the styles because of it. When the file goes to readers outside DWD and must look the same everywhere, set the fallback fonts in the styles instead (change `HEAD_FONT`, `BODY_FONT` and `MONO_FONT` in the script and rebuild under a new file name). Never embed fonts.
+There is no monospace font. Word has no 600 weight, so headings use Schibsted Grotesk bold, and the wordmark uses Inter regular where the site uses 500.
+
+The template's font table names each fallback (`altName`), so Word swaps it in when the brand font is missing. Schibsted Grotesk and Inter are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the styles because of it. When the file goes to readers outside DWD and must look the same everywhere, set the fallback fonts in the styles instead (change `HEAD_FONT` and `BODY_FONT` in the script and rebuild under a new file name). Never embed fonts.
 
 ## Page setup
 
@@ -69,16 +72,16 @@ Page 1 is the cover and uses its own header and footer ("different first page" i
 - Header, page 2 onward: the mark at left, which reads "DWD" (character style DW Mark: bold, #7a2e2e fill, font colour Automatic), a tab, then a `STYLEREF "Heading 1"` field that shows the current section. Rule below in #e3e1db. LibreOffice, Google Docs and docx-to-PDF converters can show Automatic text on the oxblood fill dark where Word shows it white; this is expected, so do not set a fixed colour.
 - Footer, page 2 onward: a `PAGE` field at right, nothing at left. Rule above in #e3e1db.
 - Cover header: empty. Cover footer: the date, style Cover Date, for example "November 2026".
-- Header and footer text is IBM Plex Mono 8pt, caps, letter spacing 0.08em, #6f6b64. This comes from the Header and Footer styles; do not format it by hand.
+- Header and footer text is Inter 8pt, sentence case, normal letter spacing, #6f6b64. This comes from the Header and Footer styles; do not format it by hand.
 
 Write each Heading 1 as number, full stop, space, name ("2. Methods") so the header reads like brand.md's example.
 
 ## Cover page recipe
 
-1. Cover Eyebrow: "Data With Dillon". Its space before puts the block about one third down the page.
+1. Cover Eyebrow: the wordmark "Data With Dillon", written as the run "Data With " then the run "Dillon" in character style Wordmark Accent (see the Starter). The style sets the caps and the letter spacing, so type the words in title case. Its space before puts the block about one third down the page. `check_docx.py` fails `wordmark` when the text differs or "Dillon" is not in Wordmark Accent.
 2. Title: the document title. Its right indent holds 13 characters per line, so a word of 13 letters fits on one line and a longer word breaks mid-word. Titles over about 26 characters wrap to three lines, so shorten them. When the brief fixes the title and a word is longer than 13 letters, hyphenate it at a syllable (end the first part with a hyphen, then a line break run: `run.add_break()`), or, when a long word sits badly next to its neighbours, put it on its own line with a line break run before it. `check_docx.py` fails `title-width` on any Title word over 13 characters.
 3. Subtitle: one line on what the document is.
-4. Put the date in the first-page footer, `doc.sections[0].first_page_footer.paragraphs[0]` (style Cover Date). The template holds the placeholder "Month Year" there, which prints as "MONTH YEAR" if you do not replace it.
+4. Put the date in the first-page footer, `doc.sections[0].first_page_footer.paragraphs[0]` (style Cover Date). The template holds the placeholder "Month Year" there; replace it.
 5. Start the first Heading 1 on page 2 with `paragraph_format.page_break_before = True`. Set `page_break_before` on the first Heading 1 only, never on a later heading: later sections follow on the same page, and the Heading styles' keep with next stops a heading sitting alone at the foot of a page. Never add empty paragraphs or page break runs to push content down. `check_docx.py` fails `breaks` on a later Heading 1 with `pageBreakBefore` or any `w:br w:type="page"` in the body.
 
 The 6px #7a2e2e bar on the left edge is a first-page-only left page border in the template. Keep it; do not draw a shape. LibreOffice may repeat it on later odd pages; Word does not. Leave it as is.
@@ -130,7 +133,7 @@ Voice and prose: follow the Writing section in brand.md.
 ## Checklist before sending
 
 - Started from `assets/dwd-template.docx`; no direct font, size or colour changes.
-- Cover has eyebrow, title, subtitle and date; the first Heading 1 starts page 2.
+- Cover has the wordmark (with "Dillon" in Wordmark Accent), title, subtitle and date; the first Heading 1 starts page 2. No role tagline or slogan on the cover.
 - `page_break_before` is on the first Heading 1 only; no later heading has it, and there are no empty paragraphs or page break runs pushing content down.
 - Headings go H1, H2, H3 in order with no skipped level; each H1 reads "N. Name".
 - Every table uses DWD Table and has a caption; numbers and the header cells over them are right aligned; header text is font colour Automatic, never fixed white.

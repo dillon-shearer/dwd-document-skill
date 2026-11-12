@@ -270,6 +270,26 @@ def check_mark(doc):
     return bad, f"{len(marks)} marks read DWD"
 
 
+def check_wordmark(doc):
+    bad = []
+    marks = [e for e in doc.all if e.has("wordmark")]
+    if len(marks) != 1:
+        bad.append(f"line {marks[1].line if marks else 1}: need one .wordmark on the cover, found {len(marks)}")
+    for m in marks:
+        accent = [c for c in m.elements() if c.tag == "span"]
+        if " ".join(m.text().split()) != "Data With Dillon" or len(accent) != 1 or accent[0].text().strip() != "Dillon":
+            bad.append(f"line {m.line}: wordmark must be 'Data With <span>Dillon</span>'")
+    for st in doc.find("style"):
+        css = st.text()
+        for r in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+            sel, body = r.group(1).strip(), r.group(2)
+            loud = re.search(r"text-transform:\s*uppercase|font-variant[^;]*caps|letter-spacing:\s*0?\.?[0-9]*[1-9]", body)
+            if loud and sel != ".wordmark":
+                at = r.start(1) + len(r.group(1)) - len(r.group(1).lstrip())
+                bad.append(f"line {st.line + css.count(chr(10), 0, at)}: uppercase or wide letter spacing on '{sel}'; only .wordmark may use it")
+    return bad, "one cover wordmark 'Data With Dillon'; only .wordmark is uppercase or widely spaced"
+
+
 def check_headings(doc):
     bad = []
     prev = 0
@@ -457,6 +477,7 @@ CHECKS = [
     ("style-attr", check_style_attr),
     ("brand-hex", check_hex),
     ("mark", check_mark),
+    ("wordmark", check_wordmark),
     ("headings", check_headings),
     ("no-footer", check_footer),
     ("captions", check_captions),

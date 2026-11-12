@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import dwd_prose
 
-EYEBROW = "`DWD / DATA WITH DILLON`"
+EYEBROW = "DATA WITH DILLON"
 MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December"
 SUBTITLE_RE = re.compile(r"^\*(?!\*)\S.* - ([1-9]|[12][0-9]|3[01]) (" + MONTHS + r") \d{4}\*$")
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
@@ -127,7 +127,7 @@ def check_title_block(doc):
     for num, level, _ in doc.headings:
         if level == 1 and num != 3:
             bad.append(f"line {num}: extra H1, the only H1 is the title on line 3")
-    return bad, "eyebrow, H1, subtitle and date on lines 1 to 5"
+    return bad, "wordmark, H1, subtitle and date on lines 1 to 5"
 
 
 def check_front_matter(doc):

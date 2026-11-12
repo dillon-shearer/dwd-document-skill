@@ -26,7 +26,7 @@ BRAND = {
     "F3E7E4", "DFBFB8", "C4928A", "A6635B", "5C2020",
     "B07A6E", "E3D3CC", "D4DDCB", "86A274",
 }
-EYEBROW = "DWD - DATA WITH DILLON"
+EYEBROW = "DATA WITH DILLON"
 NOTE_LABELS = {"Note", "Key point", "Warning", "Summary", "Quote"}
 STEP_RE = re.compile(r"Step (\d+)")
 TOPIC_RE = re.compile(r"[A-Za-z][A-Za-z0-9'-]*(?: [A-Za-z0-9][A-Za-z0-9'-]*)?")
