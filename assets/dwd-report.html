@@ -7,7 +7,7 @@
 <title>Repeat customers - DWD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Schibsted+Grotesk:wght@600&amp;display=swap">
 <style>
 :root {
   color-scheme: light;
@@ -39,9 +39,9 @@
   --div-4: #d4ddcb;
   --div-5: #86a274;
   --div-6: #4a6b3a;
-  --font-heading: "DM Sans", "Segoe UI", system-ui, sans-serif;
-  --font-body: Aptos, Calibri, Carlito, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, "Courier New", monospace;
+  --font-heading: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: Inter, "Segoe UI", system-ui, sans-serif;
+  --font-code: ui-monospace, Consolas, "Courier New", monospace;
 }
 * { box-sizing: border-box; }
 html { background: var(--paper); }
@@ -65,10 +65,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 8pt;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--ink-3);
 }
 .doc-header { padding-bottom: 8px; border-bottom: 1px solid var(--rule); margin-bottom: 2rem; break-before: page; break-after: avoid; }
@@ -81,10 +79,9 @@ body {
   min-width: 28px;
   background: var(--accent);
   color: var(--on-accent);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 9pt;
-  letter-spacing: 0.04em;
 }
 .cover {
   position: relative;
@@ -95,16 +92,23 @@ body {
   display: flex;
   flex-direction: column;
 }
-.eyebrow, .cover-date, .caption {
-  font-family: var(--font-mono);
-  font-size: 8pt;
+.wordmark {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+.wordmark span { color: var(--accent); }
+.cover-date, .caption {
+  font-family: var(--font-body);
+  font-size: 8pt;
   color: var(--ink-3);
 }
 .cover-title {
   font-family: var(--font-heading);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 44pt;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -116,7 +120,7 @@ body {
 .cover-date { margin-top: auto; padding-top: 4rem; }
 h1, h2, h3 {
   font-family: var(--font-heading);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--accent);
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -131,9 +135,9 @@ p { margin: 0 0 0.6em; }
 a { color: var(--accent); }
 a:hover { color: var(--accent-hover); }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-code { font-family: var(--font-mono); font-size: 10pt; background: var(--accent-soft); padding: 0 3px; }
+code { font-family: var(--font-code); font-size: 10pt; background: var(--accent-soft); padding: 0 3px; }
 pre {
-  font-family: var(--font-mono);
+  font-family: var(--font-code);
   font-size: 9.5pt;
   line-height: 1.35;
   background: var(--accent-soft);
@@ -195,7 +199,7 @@ blockquote {
   break-inside: avoid;
 }
 blockquote p { margin: 0 0 0.4em; }
-blockquote footer { font-style: normal; font-family: var(--font-mono); font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+blockquote footer { font-style: normal; font-family: var(--font-body); font-size: 8pt; color: var(--ink-3); }
 figure { margin: 1.2em 0; break-inside: avoid; }
 figcaption.caption { margin-bottom: 8px; }
 figure svg { display: block; width: 100%; height: auto; }
@@ -204,21 +208,21 @@ figure svg { display: block; width: 100%; height: auto; }
 .bar-label { text-align: right; font-size: 10pt; color: var(--ink-2); padding-right: 4px; }
 .bar-track { height: 22px; border-left: 1px solid var(--ink-3); display: flex; align-items: center; }
 .bar { height: 100%; flex: none; }
-.bar-value { flex: none; margin-left: 6px; color: var(--ink-2); font-family: var(--font-mono); font-size: 8pt; }
+.bar-value { flex: none; margin-left: 6px; color: var(--ink-2); font-family: var(--font-body); font-size: 8pt; }
 .bar.s1 { background: var(--series-1); }
 .bar.s2 { background: var(--series-2); }
 .bar.s3 { background: var(--series-3); }
 .bar.s4 { background: var(--series-4); }
 .bar.s5 { background: var(--series-5); }
 .bar.s6 { background: var(--series-6); }
-.chart-axis { margin-left: calc(7rem + 8px); border-top: 1px solid var(--ink-3); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 7pt; color: var(--ink-3); padding-top: 2px; }
+.chart-axis { margin-left: calc(7rem + 8px); border-top: 1px solid var(--ink-3); display: flex; justify-content: space-between; font-family: var(--font-body); font-size: 7pt; color: var(--ink-3); padding-top: 2px; }
 .page-break { break-before: page; }
 @page {
   size: letter portrait;
   margin: 2.54cm;
   @bottom-right {
     content: counter(page);
-    font-family: "IBM Plex Mono", ui-monospace, Consolas, "Courier New", monospace;
+    font-family: Inter, "Segoe UI", system-ui, sans-serif;
     font-size: 8pt;
     color: #6f6b64;
   }
@@ -241,7 +245,7 @@ figure svg { display: block; width: 100%; height: auto; }
 <body>
 <div class="page">
   <section class="cover">
-    <div class="eyebrow">Data With Dillon</div>
+    <div class="wordmark">Data With <span>Dillon</span></div>
     <div class="cover-title">Repeat customers</div>
     <p class="cover-subtitle">Twelve months of sales, January to December 2026</p>
     <div class="cover-date">3 November 2026</div>
@@ -335,18 +339,18 @@ figure svg { display: block; width: 100%; height: auto; }
       <line x1="40" y1="190" x2="560" y2="190" stroke="#6f6b64" stroke-width="1"/>
       <line x1="40" y1="10" x2="40" y2="190" stroke="#6f6b64" stroke-width="1"/>
       <polyline fill="none" stroke="#7a2e2e" stroke-width="2.5" points="50,166 95,160 140,148 185,142 230,124 275,106 320,94 365,82 410,70 455,64 500,58 545,52"/>
-      <g font-family="IBM Plex Mono, ui-monospace, Consolas, monospace" font-size="10" fill="#6f6b64">
+      <g font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="10" fill="#6f6b64">
         <text x="34" y="194" text-anchor="end">40</text>
         <text x="34" y="134" text-anchor="end">50</text>
         <text x="34" y="74" text-anchor="end">60</text>
         <text x="34" y="14" text-anchor="end">70</text>
-        <text x="50" y="206" text-anchor="middle">JAN</text>
-        <text x="185" y="206" text-anchor="middle">APR</text>
-        <text x="320" y="206" text-anchor="middle">JUL</text>
-        <text x="455" y="206" text-anchor="middle">OCT</text>
-        <text x="545" y="206" text-anchor="middle">DEC</text>
+        <text x="50" y="206" text-anchor="middle">Jan</text>
+        <text x="185" y="206" text-anchor="middle">Apr</text>
+        <text x="320" y="206" text-anchor="middle">Jul</text>
+        <text x="455" y="206" text-anchor="middle">Oct</text>
+        <text x="545" y="206" text-anchor="middle">Dec</text>
       </g>
-      <text x="545" y="44" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, Consolas, monospace" font-size="10" fill="#44403b">63%</text>
+      <text x="545" y="44" text-anchor="end" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="10" fill="#44403b">63%</text>
     </svg>
   </figure>
   <p>The repeat share rose from 44% in January to 63% in December, with the steepest climb between April and June.</p>

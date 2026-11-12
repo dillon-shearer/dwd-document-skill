@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 from datetime import date, datetime
 from xml.sax.saxutils import escape
 
+from openpyxl.cell.rich_text import CellRichText, TextBlock
+from openpyxl.cell.text import InlineFont
 from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.chart.shapes import GraphicalProperties
 from openpyxl.chart.text import RichText
@@ -16,9 +18,9 @@ from openpyxl.utils import get_column_letter
 from openpyxl.utils.datetime import to_excel
 from openpyxl.worksheet.properties import PageSetupProperties
 
-HEAD_FONT = "DM Sans"
-BODY_FONT = "Aptos"
-MONO_FONT = "IBM Plex Mono"
+HEAD_FONT = "Schibsted Grotesk"
+BODY_FONT = "Inter"
+WORDMARK = ("DATA WITH ", "DILLON")
 
 INK = "111110"
 INK2 = "44403B"
@@ -81,10 +83,10 @@ def styles():
     left = Alignment(horizontal="left", vertical="center")
     right = Alignment(horizontal="right", vertical="center")
     return [
-        style("DWD Eyebrow", font(MONO_FONT, 9, INK3), align=left),
+        style("DWD Eyebrow", font(BODY_FONT, 9, INK), align=left),
         style("DWD Title", font(HEAD_FONT, 20, ACCENT, bold=True), align=Alignment(horizontal="left", vertical="bottom")),
         style("DWD Subtitle", font(BODY_FONT, 12, INK2), align=left),
-        style("DWD Date", font(MONO_FONT, 9, INK3), FMT_LONG_DATE, align=left),
+        style("DWD Date", font(BODY_FONT, 9, INK3), FMT_LONG_DATE, align=left),
         style("DWD Header", auto_font(BODY_FONT, 11, bold=True), fill=ACCENT, align=Alignment(horizontal="left", vertical="center", wrap_text=True)),
         style("DWD Text", font(BODY_FONT, 11, INK), border=body_rule, align=left),
         style("DWD Text Wrap", font(BODY_FONT, 11, INK), border=body_rule, align=Alignment(horizontal="left", vertical="top", wrap_text=True)),
@@ -97,15 +99,23 @@ def styles():
         style("DWD Total Decimal", font(BODY_FONT, 11, INK, bold=True), FMT_DEC, border=total_rule, align=right),
         style("DWD Total Percent", font(BODY_FONT, 11, INK, bold=True), FMT_PCT, border=total_rule, align=right),
         style("DWD Table Title", font(BODY_FONT, 11, ACCENT, bold=True), align=left),
-        style("DWD Caption", font(MONO_FONT, 8, INK3), align=left),
+        style("DWD Caption", font(BODY_FONT, 8, INK3), align=left),
     ]
+
+
+def wordmark():
+    lead, name = WORDMARK
+    return CellRichText(
+        TextBlock(InlineFont(rFont=BODY_FONT, sz=9, color=argb(INK)), lead),
+        TextBlock(InlineFont(rFont=BODY_FONT, sz=9, color=argb(ACCENT)), name),
+    )
 
 
 def setup_sheet(ws, name, title, subtitle, when, landscape=False):
     ws.title = name
     ws.sheet_view.showGridLines = False
     ws.sheet_view.zoomScale = 100
-    ws["A1"] = "DWD - DATA WITH DILLON"
+    ws["A1"] = wordmark()
     ws["A1"].style = "DWD Eyebrow"
     ws["A2"] = title
     ws["A2"].style = "DWD Title"
@@ -127,7 +137,7 @@ def setup_sheet(ws, name, title, subtitle, when, landscape=False):
     ws.print_title_rows = f"{HEADER_ROW}:{HEADER_ROW}"
     for part, text in ((ws.oddHeader.left, "DWD"), (ws.oddHeader.right, "&A"), (ws.oddFooter.right, "&P")):
         part.text = text
-        part.font = f"{MONO_FONT},Regular"
+        part.font = f"{BODY_FONT},Regular"
         part.size = 8
         part.color = INK3
 

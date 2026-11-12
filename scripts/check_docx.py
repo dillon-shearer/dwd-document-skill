@@ -16,8 +16,9 @@ from docx.oxml.ns import qn
 
 REQUIRED_STYLES = [
     "Title", "Heading1", "Heading2", "Heading3", "ListBullet", "ListNumber", "Quote",
-    "Callout", "Caption", "DWDTable", "DWMark", "CoverEyebrow", "CoverDate",
+    "Callout", "Caption", "DWDTable", "DWMark", "CoverEyebrow", "CoverDate", "WordmarkAccent",
 ]
+WORDMARK = "Data With Dillon"
 H1_RE = re.compile(r"^\d+\. \S")
 NUMBER_RE = re.compile(r"^[+-]?\$?[+-]?\d[\d,]*(\.\d+)?\s?(%|pts)?$")
 DIRECT_TAGS = ("w:rFonts", "w:sz", "w:color")
@@ -183,6 +184,36 @@ def check_breaks(doc):
     return True, "only the first Heading 1 starts a new page; no page break runs"
 
 
+def run_style(r):
+    style = r.find(qn("w:rPr") + "/" + qn("w:rStyle"))
+    return None if style is None else style.get(qn("w:val"))
+
+
+def check_wordmark(doc):
+    marks = [p for p in body_paras(doc) if para_style(p) == "CoverEyebrow"]
+    if len(marks) != 1:
+        return False, f"{len(marks)} Cover Eyebrow paragraphs; the cover needs one wordmark"
+    p = marks[0]
+    if para_text(p).strip() != WORDMARK:
+        return False, f"Cover Eyebrow reads '{para_text(p).strip()}', not '{WORDMARK}'"
+    accent = "".join(para_text(r) for r in p.iter(qn("w:r")) if run_style(r) == "WordmarkAccent")
+    if accent.strip() != "Dillon":
+        return False, "'Dillon' in the wordmark is not in character style Wordmark Accent"
+    loud = []
+    for st in doc.styles.element.findall(qn("w:style")):
+        sid = st.get(qn("w:styleId"))
+        if sid == "CoverEyebrow":
+            continue
+        for r_pr in st.iter(qn("w:rPr")):
+            wide = [x for x in r_pr.findall(qn("w:spacing")) if int(x.get(qn("w:val"), "0")) > 0]
+            if r_pr.find(qn("w:caps")) is not None or r_pr.find(qn("w:smallCaps")) is not None or wide:
+                loud.append(sid)
+                break
+    if loud:
+        return False, "caps or wide letter spacing outside the wordmark in styles " + ", ".join(loud)
+    return True, "cover wordmark reads 'Data With Dillon' with 'Dillon' in Wordmark Accent; no other style is caps or widely spaced"
+
+
 def check_name(path):
     if " " in path.name:
         return False, f"file name '{path.name}' has spaces"
@@ -251,6 +282,7 @@ def main():
     checks = [
         ("template-styles", lambda: check_styles(doc)),
         ("no-direct-format", lambda: check_direct(doc)),
+        ("wordmark", lambda: check_wordmark(doc)),
         ("title-width", lambda: check_title_width(doc)),
         ("h1-format", lambda: check_h1(doc)),
         ("heading-order", lambda: check_levels(doc)),

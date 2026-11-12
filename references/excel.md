@@ -44,11 +44,10 @@ d.save(wb, "dwd-orders-by-region.xlsx")
 
 | Role | Font | Office-safe fallback |
 | --- | --- | --- |
-| Title | DM Sans 700 | Segoe UI |
-| Body, table cells | Aptos 11pt | Calibri |
-| Eyebrow, date, captions, print header and footer | IBM Plex Mono | Consolas |
+| Title | Schibsted Grotesk bold | Segoe UI |
+| Body, table cells, wordmark, date, captions, print header and footer | Inter | Segoe UI |
 
-Excel has no per-cell fallback list; on a machine without a brand font it substitutes one. DM Sans, Aptos and IBM Plex Mono are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the template because of it. Never embed fonts.
+There is no monospace font. Excel has no per-cell fallback list; on a machine without a brand font it substitutes one. Schibsted Grotesk and Inter are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the template because of it. Never embed fonts.
 
 This file overrides generic xlsx guidance on fonts (Arial or Times): DWD workbooks use the template fonts.
 
@@ -58,31 +57,31 @@ Use only these cell styles. They show under Home > Cell Styles; openpyxl takes t
 
 | Use | Style | Look |
 | --- | --- | --- |
-| Eyebrow (A1) | DWD Eyebrow | IBM Plex Mono 9pt, #6f6b64 |
-| Sheet title (A2) | DWD Title | DM Sans 700, 20pt, #7a2e2e |
-| Subtitle (A3) | DWD Subtitle | Aptos 12pt, #44403b |
-| Date (A4) | DWD Date | IBM Plex Mono 9pt, #6f6b64, `d mmmm yyyy` |
-| Table header row | DWD Header | Aptos 11pt bold, #7a2e2e fill, font colour Automatic |
-| Text cells | DWD Text | Aptos 11pt, #111110, left, thin #e3e1db rule below |
+| Wordmark (A1) | DWD Eyebrow | Inter 9pt, #111110; "DILLON" #7a2e2e as rich text |
+| Sheet title (A2) | DWD Title | Schibsted Grotesk bold, 20pt, #7a2e2e |
+| Subtitle (A3) | DWD Subtitle | Inter 12pt, #44403b |
+| Date (A4) | DWD Date | Inter 9pt, #6f6b64, `d mmmm yyyy` |
+| Table header row | DWD Header | Inter 11pt bold, #7a2e2e fill, font colour Automatic |
+| Text cells | DWD Text | Inter 11pt, #111110, left, thin #e3e1db rule below |
 | Long text cells | DWD Text Wrap | as DWD Text, wrap on, top aligned |
 | Whole numbers | DWD Integer | as DWD Text, right, `#,##0` |
 | Decimals | DWD Decimal | as DWD Text, right, `#,##0.0` |
 | Percentages | DWD Percent | as DWD Text, right, `0.0%` |
 | Dates in a table | DWD Date Cell | as DWD Text, right, `yyyy-mm-dd` |
-| Total row label | DWD Total Label | Aptos 11pt bold, left, thin #6f6b64 rule above |
+| Total row label | DWD Total Label | Inter 11pt bold, left, thin #6f6b64 rule above |
 | Whole number total | DWD Total Integer | as DWD Total Label, right, `#,##0` |
 | Decimal total | DWD Total Decimal | as DWD Total Label, right, `#,##0.0` |
 | Percent total | DWD Total Percent | as DWD Total Label, right, `0.0%` |
-| Table title (row above the header) | DWD Table Title | Aptos 11pt bold, #7a2e2e, left, no border |
-| Table or chart label | DWD Caption | IBM Plex Mono 8pt, #6f6b64 |
+| Table title (row above the header) | DWD Table Title | Inter 11pt bold, #7a2e2e, left, no border |
+| Table or chart label | DWD Caption | Inter 8pt, #6f6b64, sentence case |
 
-Normal is Aptos 11pt #111110. A text column whose entries would need a width over 40 uses DWD Text Wrap at width 40. Need another number format (currency, two decimals)? Copy the nearest style in the script under a new `DWD` name and rebuild; do not set formats cell by cell.
+Normal is Inter 11pt #111110. A text column whose entries would need a width over 40 uses DWD Text Wrap at width 40. Need another number format (currency, two decimals)? Copy the nearest style in the script under a new `DWD` name and rebuild; do not set formats cell by cell.
 
 ## Title block
 
 Rows 1 to 4 of every sheet, in column A, no merged cells:
 
-1. A1, DWD Eyebrow: "DWD - DATA WITH DILLON". The mark reads "DWD".
+1. A1, DWD Eyebrow: the wordmark "DATA WITH DILLON" as rich text, "DATA WITH " in #111110 and "DILLON" in #7a2e2e. `setup_sheet` and `new_sheet` write it (`dwd_excel.wordmark()`); do not retype it. Excel cells have no caps setting or letter spacing, so the words are typed in capitals and spacing is normal. It is the only uppercase text in the workbook; every other label is sentence case.
 2. A2, DWD Title: the sheet title, short, sentence case.
 3. A3, DWD Subtitle: one line on what the sheet holds, with the data source and units when the caption does not give them.
 4. A4, DWD Date: the date as a real date value, not text.
@@ -124,7 +123,7 @@ A total row puts its label in DWD Total Label and each total in the Total style 
 
 ## Print setup
 
-Portrait, US Letter, 1 inch margins, fit to one page wide. Row 7, the header row, repeats on each printed page. Print header: "DWD" left, sheet name right; footer: page number right; all IBM Plex Mono 8pt #6f6b64. The template and `new_sheet` set all of this.
+Portrait, US Letter, 1 inch margins, fit to one page wide. Row 7, the header row, repeats on each printed page. Print header: "DWD" left, sheet name right; footer: page number right; all Inter 8pt #6f6b64. The template and `new_sheet` set all of this.
 
 ## Sheets
 

@@ -59,17 +59,16 @@ Use only these layouts, by name (`layout_named`).
 | Picture | One image per slide | title, picture (idx 13), caption (idx 14) |
 | Closing | Last slide | title, text (idx 1) |
 
-Title and Closing have the 0.08 in (5.76pt) #7a2e2e bar on the left edge and the "Data With Dillon" eyebrow, like the cover page in brand.md. They have no footer. Every other layout has the footer.
+Title and Closing have the 0.08 in (5.76pt) #7a2e2e bar on the left edge and the "Data With Dillon" wordmark (shape "Eyebrow": Inter 12pt, caps, 0.1em letter spacing, "Data With" in #111110 and "Dillon" in #7a2e2e), like the cover page in brand.md. It is the only caps text in the deck; leave it as the layout draws it. `check_deck.py` fails `wordmark` when it is changed. They have no footer. Every other layout has the footer.
 
 ## Fonts
 
 | Role | Font | Office-safe fallback |
 | --- | --- | --- |
-| Titles | DM Sans 700 (theme heading font) | Segoe UI |
-| Body, tables, charts | Aptos (theme body font) | Calibri |
-| Eyebrow, footer, captions | IBM Plex Mono | Consolas |
+| Titles | Schibsted Grotesk bold (theme heading font) | Segoe UI |
+| Body, tables, charts, wordmark, footer, captions | Inter (theme body font) | Segoe UI |
 
-The theme names DM Sans and Aptos, so text set to the theme fonts picks them up. On a machine without them PowerPoint substitutes a font; the fallback column is what readers outside DWD will most likely see. DM Sans, Aptos and IBM Plex Mono are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the theme because of it. Never embed fonts.
+There is no monospace font. The theme names Schibsted Grotesk and Inter, so text set to the theme fonts picks them up. On a machine without them PowerPoint substitutes a font; the fallback column is what readers outside DWD will most likely see. Schibsted Grotesk and Inter are not installed in agent sandboxes, so any render you make yourself shows fallback fonts; do not change the fonts in the theme because of it. Never embed fonts.
 
 ## Text sizes
 
@@ -83,8 +82,9 @@ The theme names DM Sans and Aptos, so text set to the theme fonts picks them up.
 | Body level 2 | 18pt | #111110 |
 | Table text | 16pt (14pt at the least) | #111110 |
 | Chart labels | 12pt | #44403b |
-| Eyebrow, date | IBM Plex Mono 12pt, caps | #6f6b64 |
-| Footer, caption | IBM Plex Mono 9pt and 10pt, caps | #6f6b64 |
+| Wordmark | Inter 12pt, caps, 0.1em letter spacing | #111110, "Dillon" #7a2e2e |
+| Date | Inter 9pt, sentence case | #6f6b64 |
+| Footer, caption | Inter 9pt and 10pt, sentence case | #6f6b64 |
 
 These come from the master and layouts; do not set them by hand.
 
@@ -105,7 +105,7 @@ Text on an accent fill uses the theme colour Background 1 (`schemeClr bg1`), nev
 
 ## Footer
 
-Content layouts show a footer row at 6.98 in from the top, below a 0.75pt #e3e1db rule at 6.85 in. Left to right: the mark ("DWD" on a #7a2e2e square, IBM Plex Mono bold, on the master; do not add it again), the deck name in the footer placeholder (idx 11), for example "Quarterly sales review", and the slide number at right (idx 12, a slide number field).
+Content layouts show a footer row at 6.98 in from the top, below a 0.75pt #e3e1db rule at 6.85 in. Left to right: the mark ("DWD" on a #7a2e2e square, Inter bold, on the master; do not add it again), the deck name in the footer placeholder (idx 11), for example "Quarterly sales review", and the slide number at right (idx 12, a slide number field).
 
 python-pptx does not copy the footer and slide number placeholders onto new slides. Call `add_hf(slide, {"ftr", "sldNum"}, values)` on each content slide. The date shows only on the Title slide.
 

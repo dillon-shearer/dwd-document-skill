@@ -4,9 +4,9 @@ Dialect: GitHub Flavored Markdown. Tables and column alignment are GFM extension
 
 Rules for writing a .md file (README, report, notes) in the DWD brand. Read [brand.md](brand.md) first. `assets/dwd-sample.md` follows every rule below.
 
-## Title line and eyebrow
+## Title line and wordmark
 
-- Line 1 is the eyebrow: `DWD / DATA WITH DILLON` in inline code, uppercase. The mark is always "DWD", never "DW".
+- Line 1 is the wordmark as plain text: `DATA WITH DILLON`, typed in capitals because Markdown has no case or colour styling. It is the only uppercase line in the file (brand.md, Labels and wordmark). No inline code, no bold, no "DWD /" prefix.
 - Line 3 is the title as the only H1: `# Title`.
 - Line 5 is one italic line with the subtitle and date: `*Subtitle - 3 November 2026*`. Dates follow brand.md.
 - Lines 2 and 4 are blank. No front matter above line 1.
@@ -108,7 +108,7 @@ Voice and prose: follow the Writing section in brand.md.
 ## Checklist before sending
 
 1. UTF-8, LF endings, exactly one final newline.
-2. Line 1 eyebrow, line 3 the only H1, line 5 the italic subtitle and date; lines 2 and 4 blank.
+2. Line 1 wordmark, line 3 the only H1, line 5 the italic subtitle and date; lines 2 and 4 blank.
 3. No front matter.
 4. H2 and H3 only, no skipped levels.
 5. H2 numbered `N.` in order from 1, or none numbered.

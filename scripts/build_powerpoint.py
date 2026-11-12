@@ -40,9 +40,8 @@ ASSETS = ROOT / "assets"
 TEMPLATE = ASSETS / "dwd-template.pptx"
 SAMPLE = ASSETS / "dwd-sample.pptx"
 
-HEAD_FONT = "DM Sans"
-BODY_FONT = "Aptos"
-MONO_FONT = "IBM Plex Mono"
+HEAD_FONT = "Schibsted Grotesk"
+BODY_FONT = "Inter"
 
 INK = "111110"
 INK2 = "44403B"
@@ -99,10 +98,6 @@ def rpr(tag, size, color, font, bold=False, caps=False, spc=None):
     if spc is not None:
         attrs += f' spc="{spc}"'
     return f"<a:{tag} {attrs}>{fill(color)}{font_tags(font)}</a:{tag}>"
-
-
-def mono_spc(size):
-    return int(round(size * 8))
 
 
 def lvl(n, size, color, font, algn="l", bullet=None, mar=0, indent=0, after=0, line=None, bold=False, caps=False, spc=None):
@@ -187,8 +182,8 @@ FOOT_H = inch(0.3)
 MARK_W = inch(0.62)
 NUM_W = inch(1.5)
 FOOT_SIZE = 9
-FOOT_LST = plain_levels(FOOT_SIZE, INK3, MONO_FONT, caps=True, spc=mono_spc(FOOT_SIZE))
-FOOT_NUM_LST = plain_levels(FOOT_SIZE, INK3, MONO_FONT, algn="r", caps=True, spc=mono_spc(FOOT_SIZE))
+FOOT_LST = plain_levels(FOOT_SIZE, INK3, "minor")
+FOOT_NUM_LST = plain_levels(FOOT_SIZE, INK3, "minor", algn="r")
 
 TITLE_BOX = (LEFT, inch(0.45), TEXT_W, inch(0.9))
 BODY_BOX = (LEFT, inch(1.6), TEXT_W, inch(4.95))
@@ -203,7 +198,7 @@ def footer_phs():
 
 
 def master_xml(layout_rids):
-    mark_rpr = rpr("rPr", FOOT_SIZE, "bg1", MONO_FONT, bold=True, spc=mono_spc(FOOT_SIZE))
+    mark_rpr = rpr("rPr", FOOT_SIZE, "bg1", "minor", bold=True)
     shapes = [
         ph(2, "Title", 'type="title"', TITLE_BOX, anchor="b", text="Slide title"),
         ph(3, "Text", 'type="body" idx="1"', BODY_BOX, text="First level"),
@@ -234,8 +229,11 @@ def layout_xml(name, ltype, shapes, show_master=True):
 
 def eyebrow(sid, y):
     size = 12
-    return text_box(sid, "Eyebrow", (LEFT + inch(0.3), y, inch(8), inch(0.35)), "Data With Dillon",
-                    rpr("rPr", size, INK3, MONO_FONT, caps=True, spc=mono_spc(size)))
+    spc = int(round(size * 10))
+    ink = rpr("rPr", size, INK, "minor", caps=True, spc=spc)
+    accent = rpr("rPr", size, ACCENT, "minor", caps=True, spc=spc)
+    box = text_box(sid, "Eyebrow", (LEFT + inch(0.3), y, inch(8), inch(0.35)), "Data With ", ink)
+    return box.replace("</a:t></a:r></a:p>", f"</a:t></a:r><a:r>{accent}<a:t>Dillon</a:t></a:r></a:p>")
 
 
 def accent_bar(sid):
@@ -270,7 +268,7 @@ def layouts():
         ph(3, "Left Content", 'sz="half" idx="1"', (LEFT, BODY_BOX[1], half, BODY_BOX[3]), text="First level"),
         ph(4, "Right Content", 'sz="half" idx="2"', (LEFT + half + inch(0.4), BODY_BOX[1], half, BODY_BOX[3]), text="First level"),
     ] + footer_phs()
-    cap_lst = plain_levels(10, INK3, MONO_FONT, caps=True, spc=mono_spc(10))
+    cap_lst = plain_levels(10, INK3, "minor")
     chart = [
         ph(2, "Title", 'type="title"', TITLE_BOX, anchor="b", text="Slide title"),
         ph(3, "Chart", 'type="chart" idx="13"', (LEFT, BODY_BOX[1], TEXT_W, inch(4.45))),
