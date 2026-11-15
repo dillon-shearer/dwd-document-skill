@@ -1,5 +1,6 @@
 import argparse
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -25,7 +26,8 @@ def parse_args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     p = argparse.ArgumentParser(prog="render.py", description="Render a War Thunder skin on an extracted glTF mesh.")
     p.add_argument("--mesh", required=True, help="glTF exported by wt-unpack")
-    p.add_argument("--color", required=True, help="color texture (TGA or PNG), the skin's replacement for <prefix>_c")
+    p.add_argument("--color", help="color texture (TGA or PNG), the skin's replacement for <prefix>_c")
+    p.add_argument("--skin", help="skin folder; applies every replace_tex in its .blk instead of --color and --normal")
     p.add_argument("--normal", help="Dagor packed normal map (the skin's <prefix>_n.tga); omit to keep the mesh's own")
     p.add_argument("--out", required=True, help="output folder for the PNG renders")
     p.add_argument("--prefix", help="texture prefix to replace, e.g. mig_21_bison; default: color file name without _c")
@@ -33,7 +35,10 @@ def parse_args():
     p.add_argument("--width", type=int, default=1600)
     p.add_argument("--height", type=int, default=1000)
     p.add_argument("--samples", type=int, default=32)
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    if bool(args.color) == bool(args.skin):
+        p.error("give either --color or --skin")
+    return args
 
 
 def image_stem(img):
@@ -76,16 +81,38 @@ def split_packed_normal(path):
     return out
 
 
+def skin_textures(args):
+    if not args.skin:
+        prefix = (args.prefix or Path(args.color).stem).lower()
+        if not args.prefix and prefix.endswith("_c"):
+            prefix = prefix[:-2]
+        return {prefix: args.color}, ({prefix: args.normal} if args.normal else {})
+    folder = Path(args.skin)
+    blks = sorted(folder.glob("*.blk"))
+    if len(blks) != 1:
+        raise SystemExit(f"expected one .blk in {folder}, found {len(blks)}")
+    pairs = re.findall(r'from:t="([^"]+)"\s*to:t="([^"]+)"', blks[0].read_text(encoding="utf-8", errors="replace"))
+    colors, normals = {}, {}
+    for src, dst in pairs:
+        src = src.lower().rstrip("*")
+        if src.endswith("_c"):
+            colors[src[:-2]] = folder / dst
+        elif src.endswith("_n"):
+            normals[src[:-2]] = folder / dst
+    if not colors:
+        raise SystemExit(f"{blks[0]} replaces no color texture")
+    return colors, normals
+
+
 def apply_skin(args, meshes):
-    prefix = (args.prefix or Path(args.color).stem).lower()
-    if not args.prefix and prefix.endswith("_c"):
-        prefix = prefix[:-2]
-    targets = {f"{prefix}_c": None, f"{prefix}_n_normal": None, f"{prefix}_n_metal_rough": None}
-    color = load_image(args.color, False)
-    color.alpha_mode = "NONE"
-    targets[f"{prefix}_c"] = color
-    if args.normal:
-        targets[f"{prefix}_n_normal"], targets[f"{prefix}_n_metal_rough"] = split_packed_normal(args.normal)
+    colors, normals = skin_textures(args)
+    targets = {}
+    for stem, path in colors.items():
+        img = load_image(path, False)
+        img.alpha_mode = "NONE"
+        targets[f"{stem}_c"] = img
+    for stem, path in normals.items():
+        targets[f"{stem}_n_normal"], targets[f"{stem}_n_metal_rough"] = split_packed_normal(path)
     hits = {}
     seen = set()
     for ob in meshes:
@@ -96,10 +123,16 @@ def apply_skin(args, meshes):
                 if targets.get(stem) is not None:
                     node.image = targets[stem]
                     hits[stem] = hits.get(stem, 0) + 1
-    if f"{prefix}_c" not in hits:
-        raise SystemExit(f"no material uses {prefix}_c; textures in the mesh: {', '.join(sorted(seen))}")
-    if args.normal and len(hits) < 3:
-        raise SystemExit(f"normal map given but the mesh has no {prefix}_n_normal and {prefix}_n_metal_rough textures")
+    missing = [stem for stem in colors if f"{stem}_c" not in hits]
+    if missing and (not args.skin or len(missing) == len(colors)):
+        raise SystemExit(f"no material uses {missing[0]}_c; textures in the mesh: {', '.join(sorted(seen))}")
+    if missing:
+        print("not on this mesh, skipped: " + ", ".join(f"{s}_c" for s in missing))
+    for stem in normals:
+        if args.skin and stem in missing:
+            continue
+        if f"{stem}_n_normal" not in hits or f"{stem}_n_metal_rough" not in hits:
+            raise SystemExit(f"normal map given but the mesh has no {stem}_n_normal and {stem}_n_metal_rough textures")
     print("skin applied: " + ", ".join(f"{k} x{v}" for k, v in sorted(hits.items())))
 
 

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="300" height="300">
+  <title>0OPS kill mark</title>
+  <rect id="preview" x="0" y="0" width="100" height="100" fill="#101113"/>
+  <path id="kill" d="M 50 2 L 53 10 L 54 30 L 58 40 L 96 66 L 96 72 L 58 66 L 57 82 L 74 92 L 74 97 L 53 94 L 50 99 L 47 94 L 26 97 L 26 92 L 43 82 L 42 66 L 4 72 L 4 66 L 42 40 L 46 30 L 47 10 Z" fill="#f0f0f0"/>
+</svg>
