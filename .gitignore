@@ -11,3 +11,7 @@ build/
 *.stackdump
 scratch/
 __pycache__/
+warthunder/models/
+warthunder/templates/
+warthunder/out/
+warthunder/tools/
