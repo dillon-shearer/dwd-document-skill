@@ -2,16 +2,17 @@
   "model": "mig_21_bison",
   "prefix": "mig_21_bison",
   "splinter": {"cell": [2.6, 1.4, 1.1], "seed": 33, "mirror": true, "share": 0.6},
-  "fin_badge": {"center": [-4.72, 1.64], "height": 0.5, "max_offset": 0.2},
+  "fin_badge": {"center": [-4.80, 1.65], "height": 0.5, "max_offset": 0.2},
   "wingtips": [
     {"what": "wingtips", "tip": 3.58, "width": 0.3, "x": [-2.7, 2.2], "z": [-0.4, 0.1]},
     {"what": "tailplane tips", "tip": 1.91, "width": 0.2, "x": [-6.8, -3.4], "z": [-0.05, 0.25]}
   ],
   "accents": [
     {"what": "nose cone", "whole": true, "min": [6.2, -0.5, -0.6], "max": [7.8, 0.5, 0.35]},
-    {"what": "pitot boom", "min": [6.95, -0.3, 0.3], "max": [8.6, -0.15, 0.45]},
-    {"what": "fin tip", "min": [-7.0, -0.3, 2.25], "max": [-4.0, 0.3, 2.5]},
-    {"what": "anti-glare panel", "color": "antiglare", "min": [4.8, -0.3, 0.25], "max": [6.25, 0.3, 0.7]}
+    {"what": "pitot boom", "min": [6.95, -0.3, 0.3], "max": [8.6, -0.15, 0.45]}
+  ],
+  "emblems": [
+    {"what": "dragon", "svg": "dragon", "center": [-0.43, 0.0], "length": 2.46, "surfaces": ["top"], "min_facing": 0.93, "bands": [[0, 0.14], [0.58, 9]]}
   ],
   "lettering": {"text": "0OPS", "slashed_zero": true, "center": [3.6, 0.2], "height": 0.14, "max_offset": 0.7},
   "kill_marks": {"count": 5, "start": [3.9, 0.38], "height": 0.09, "gap": 0.03, "max_offset": 0.7},
@@ -34,10 +35,10 @@
     "apu_27",
     "aku_170_launcher",
     "su_apu_68um2",
-    {"name": "su_490l_drop_tank", "model": "su_490l_drop_tank", "nose": 0.7},
-    {"name": "su_r_73", "model": "su_r_73", "nose": 0.22},
-    {"name": "su_r_27r_27t_missile", "model": ["su_r_27r_missile", "su_r_27t_missile"], "nose": 0.3},
-    {"name": "su_r_77_missile", "model": "su_r_77_missile", "nose": 0.3},
-    {"name": "su_s_24_rocket", "model": "su_s_24_rocket", "nose": 0.2}
+    {"name": "su_490l_drop_tank", "model": "su_490l_drop_tank"},
+    {"name": "su_r_73", "model": "su_r_73"},
+    {"name": "su_r_27r_27t_missile", "model": ["su_r_27r_missile", "su_r_27t_missile"]},
+    {"name": "su_r_77_missile", "model": "su_r_77_missile"},
+    {"name": "su_s_24_rocket", "model": "su_s_24_rocket"}
   ]
 }
