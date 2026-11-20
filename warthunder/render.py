@@ -96,7 +96,7 @@ def skin_textures(args):
         prefix = (args.prefix or Path(args.color).stem).lower()
         if not args.prefix and prefix.endswith("_c"):
             prefix = prefix[:-2]
-        return {prefix: args.color}, ({prefix: args.normal} if args.normal else {})
+        return {f"{prefix}_c": args.color}, ({prefix: args.normal} if args.normal else {})
     folder = Path(args.skin)
     blks = sorted(folder.glob("*.blk"))
     if len(blks) != 1:
@@ -105,10 +105,10 @@ def skin_textures(args):
     colors, normals = {}, {}
     for src, dst in pairs:
         src = src.lower().rstrip("*")
-        if src.endswith("_c"):
-            colors[src[:-2]] = folder / dst
-        elif src.endswith("_n"):
+        if src.endswith("_n"):
             normals[src[:-2]] = folder / dst
+        else:
+            colors[src] = folder / dst
     if not colors:
         raise SystemExit(f"{blks[0]} replaces no color texture")
     return colors, normals
@@ -120,7 +120,7 @@ def apply_skin(args, meshes):
     for stem, path in colors.items():
         img = load_image(path, False)
         img.alpha_mode = "NONE"
-        targets[f"{stem}_c"] = img
+        targets[stem] = img
     for stem, path in normals.items():
         targets[f"{stem}_n_normal"], targets[f"{stem}_n_metal_rough"] = split_packed_normal(path)
     hits = {}
@@ -133,13 +133,13 @@ def apply_skin(args, meshes):
                 if targets.get(stem) is not None:
                     node.image = targets[stem]
                     hits[stem] = hits.get(stem, 0) + 1
-    missing = [stem for stem in colors if f"{stem}_c" not in hits]
+    missing = [stem for stem in colors if stem not in hits]
     if missing and (not args.skin or len(missing) == len(colors)):
-        raise SystemExit(f"no material uses {missing[0]}_c; textures in the mesh: {', '.join(sorted(seen))}")
+        raise SystemExit(f"no material uses {missing[0]}; textures in the mesh: {', '.join(sorted(seen))}")
     if missing:
-        print("not on this mesh, skipped: " + ", ".join(f"{s}_c" for s in missing))
+        print("not on this mesh, skipped: " + ", ".join(missing))
     for stem in normals:
-        if args.skin and stem in missing:
+        if args.skin and f"{stem}_n_normal" not in seen:
             continue
         if f"{stem}_n_normal" not in hits or f"{stem}_n_metal_rough" not in hits:
             raise SystemExit(f"normal map given but the mesh has no {stem}_n_normal and {stem}_n_metal_rough textures")

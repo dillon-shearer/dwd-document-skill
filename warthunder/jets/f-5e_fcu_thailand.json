@@ -1,0 +1,49 @@
+{
+  "model": "f_5e_fcu_thailand",
+  "prefix": "f_5e_fcu_thailand",
+  "normal": "f_5e_aidc_n",
+  "splinter": {"cell": [2.6, 1.4, 1.1], "seed": 33, "mirror": true, "share": 0.6},
+  "fin_badge": {"center": [-4.40, 1.45], "height": 0.5, "max_offset": 0.2},
+  "wingtips": [
+    {"what": "wingtips", "tip": 3.91, "width": 0.3, "x": [-2.4, 0.4], "z": [-0.35, 0.0]},
+    {"what": "tailplane tips", "tip": 2.2, "width": 0.2, "x": [-5.3, -3.5], "z": [-0.45, -0.15]}
+  ],
+  "accents": [
+    {"what": "nose cone", "min": [6.605, -0.5, -0.5], "max": [7.83, 0.5, 0.5]},
+    {"what": "pitot boom", "min": [7.82, -0.05, -0.2], "max": [8.35, 0.05, 0.2]},
+    {"what": "left wingtip launch rail", "whole": true, "color": "base", "min": [-2.3, -4.05, -0.3], "max": [0.35, -3.85, -0.1]},
+    {"what": "right wingtip launch rail", "whole": true, "color": "base", "min": [-2.3, 3.85, -0.3], "max": [0.35, 4.05, -0.1]}
+  ],
+  "emblems": [
+    {"what": "dragon", "svg": "dragon", "center": [-1.05, 0.0], "length": 2.8, "surfaces": ["top"], "min_facing": 0.93, "bands": [[0, 0.15], [0.87, 9]]}
+  ],
+  "lettering": {"text": "0OPS", "slashed_zero": true, "center": [2.78, 0.1], "height": 0.14, "max_offset": 0.7},
+  "kill_marks": {"count": 5, "start": [3.08, 0.27], "height": 0.09, "gap": 0.03, "max_offset": 0.7},
+  "lead_band": {"z": [2.32, 2.40], "x": [-5.5, -3.8], "max_offset": 0.3},
+  "keep": [
+    {"what": "main wheels", "min": [-1.16, -0.93, -0.42], "max": [-0.57, 0.93, -0.17]},
+    {"what": "nose wheel", "min": [4.9, -0.12, -0.4], "max": [5.4, 0.12, 0.06]},
+    {"what": "exhaust nozzle petals", "min": [-6.0, -0.52, -0.25], "max": [-5.8, 0.52, 0.28]}
+  ],
+  "parts": [
+    "f_5e_fcu_thailand_corner_adapter",
+    "aero_5a",
+    "lau_7",
+    "us_lau_117",
+    "us_gpu_5a_pod",
+    {"name": "f_5a_inside", "tex": "f_5a_inside_a", "model": "f_5e_fcu_thailand"},
+    {"name": "us_aim_9p4_sidewinder", "model": "us_aim_9p4_sidewinder"},
+    {"name": "python_3", "model": "python_3"},
+    {"name": "us_agm_65b", "model": "us_agm_65b"},
+    {"name": "us_150gal_early_drop_tank", "model": "us_150gal_early_drop_tank"},
+    {"name": "us_150gal_drop_tank", "model": "us_150gal_fuse_drop_tank"},
+    {"name": "us_500lb_mk_82_ldgp", "model": "us_500lb_mk_82_ldgp"},
+    {"name": "us_500lb_mk_82_snakeye", "model": "us_500lb_mk_82_snakeye_na"},
+    {"name": "us_750lb_m117_cone", "tex": "us_750lb_m117_cone_a", "model": "us_750lb_m117_cone_45"},
+    {"name": "750_lb_blu_27_finned", "model": "750_lb_blu_27_unfinned"},
+    {"name": "us_1000lb_mk_83_ldgp", "model": "us_1000lb_mk_83_ldgp"},
+    {"name": "us_2000lb_mk_84_ldgp", "model": "us_2000lb_mk_84_ldgp"},
+    {"name": "aero_7_olive", "model": "aero_7a"},
+    {"name": "us_lau_10a", "model": "lau_10a"}
+  ]
+}

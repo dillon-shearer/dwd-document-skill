@@ -137,7 +137,8 @@ exact commands; in short:
    makes the template in game: open the jet, Customization, create a user skin template). Never edit the
    template folder in `UserSkins`.
 2. Extract the mesh and its stores with wt-unpack into `warthunder/models/`.
-3. Copy `jets/mig-21_bison.json` to `jets/<jet>.json` and set `model`, `prefix`, `parts` and `keep`.
+3. Copy `jets/mig-21_bison.json` to `jets/<jet>.json` and set `model`, `prefix`, `parts` and `keep`
+   (and `normal` when the template's normal map is not `<prefix>_n`).
 4. Place the markings with numbers from the mesh (see below), then generate, render, look, adjust:
    ```sh
    python warthunder/fit.py <jet>
@@ -189,6 +190,11 @@ to get close, then confirm with a Blender render.
 Bison values: center [-0.43, 0], length 2.46 m (head tip X 0.80, spade X -1.66, wing tips at Y +-2.31,
 0.15 m inside the delta's leading edge), bands [[0, 0.14], [0.58, 9]], min_facing 0.93.
 
+F-5E FCU values: center [-1.05, 0], length 2.8 m (head tip X 0.35, spade X -2.45 ahead of the fin root,
+wing tips at Y +-2.63, about 0.3 m behind the leading edge; the deepest trailing-edge point stays about
+0.14 m ahead of the wing trailing edge), bands [[0, 0.15], [0.87, 9]]. Dragon half-span is 0.67 of the
+wing half-span (Bison 0.645), so on this wider wing it is longer than on the Bison in meters.
+
 ## Gotchas
 
 - Mirrored UVs: parts of a jet share mirrored texture space, so one texel shows on both sides. On the
@@ -215,6 +221,23 @@ Bison values: center [-0.43, 0], length 2.46 m (head tip X 0.80, spade X -1.66, 
 - Safety: never write inside the War Thunder folder except `UserSkins`; never touch
   `UserSkins/template_*` (livery.py refuses those names); never launch the game; run Blender with `-b`
   only.
+- Normal map name: some templates replace a normal map shared with another version of the jet (F-5E
+  FCU: `f_5e_aidc_n*`, not `f_5e_fcu_thailand_n*`). Set `normal` in the jet file to that name.
+- Textures not ending in `_c`: a store or part texture can be `<name>_a` (M117 bomb, the F-5E's
+  `f_5a_inside_a` inner structure of wings, fin and tailplanes). List it in `parts` with `tex` set to
+  the full name; the `.blk` then replaces that name. Cover inner-structure textures too, or stock grey
+  shows at control surface gaps.
+- Wingtip launch rails on the main texture (F-5E): the white wingtip band would also paint them. Paint
+  the rail parts base black with a `whole` accent box with `color` `base`, so the white band sits on the
+  wing tip like the Bison's and the launcher stays black (rule 1). The thin light line along the F-5E
+  rudder hinge is the gap catching the light; the texture there is black.
+- Raised spine with flat shelves beside it (F-5E): the shelves face up but are not wing. Start the wing
+  band at the wing root (0.87 m on the F-5E), not at the shelf, so the dragon wings start on the wing
+  as on the Bison instead of leaving a separate white strip on the fuselage.
+- One-sided bumps: the F-5E FCU has a refuelling probe fairing on the left side only, at Z 0.36 to 0.46
+  under the canopy. Keep "0OPS" and the kill marks below it on both sides, so the two sides match.
+- Stores in another pack: some stores are not in `aces.grp` (the F-5E's `aero_7a` and `lau_10a` are in
+  `aircrafts/air.grp`).
 - Repo: `models/`, `templates/`, `out/` and `tools/` are git-ignored (game assets and build output).
   Commit only the scripts, this model and the jet files. Text files are ASCII only (`python check.py`).
 
