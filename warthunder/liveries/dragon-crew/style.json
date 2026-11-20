@@ -1,9 +1,11 @@
 {
+  "name": "Dragon Crew",
+  "skin_name": "0OPS-Dragon-Crew-{jet}",
   "base": "#0a0a0b",
   "splinter": "#0a0a0b",
   "white": "#f0f0f0",
   "accent": "#f0f0f0",
-  "antiglare": "#08090a",
+  "antiglare": "#0a0a0b",
   "badge_fill": "#0a0a0b",
   "badge_outline": 3.5,
   "panel_lines": 5,

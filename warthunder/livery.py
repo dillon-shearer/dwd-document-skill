@@ -362,10 +362,14 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
     base = hex_rgb(style["base"])
     shade = hex_rgb(style["splinter"])
     white = hex_rgb(style["white"])
-    light = splinter_mask(pos, cfg["splinter"], *bounds)
-    col = np.where(light[:, None], shade, base).astype(np.float32)
     detail_w = np.ones(len(pix), dtype=np.float32)
-    log(f"{label}: splinter, {light.mean():.2f} of fragments in the lighter shade")
+    if np.array_equal(shade, base):
+        col = np.repeat(base[None, :], len(pix), 0)
+        log(f"{label}: one base color, no splinter")
+    else:
+        light = splinter_mask(pos, cfg["splinter"], *bounds)
+        col = np.where(light[:, None], shade, base).astype(np.float32)
+        log(f"{label}: splinter, {light.mean():.2f} of fragments in the lighter shade")
 
     tips = cfg.get("wingtips", [])
     for wt in [tips] if isinstance(tips, dict) else tips:
@@ -383,7 +387,7 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
         fn *= np.where((fn * N.sum(1)).sum(1) < 0, -1.0, 1.0)[:, None]
         face_z = fn[tri, 2].astype(np.float32)
     for em in cfg.get("emblems", []):
-        shape = load_shape(HERE / "livery" / f"{em['svg']}.svg", "emblem")
+        shape = load_shape(opts["art"] / f"{em['svg']}.svg", "emblem")
         smin, smax = shape.min(0), shape.max(0)
         scale = float(em["length"]) / (smax[1] - smin[1])
         mid = (smin + smax) / 2
@@ -461,10 +465,10 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
     km = cfg.get("kill_marks")
     kills = int(opts.get("kills", 0))
     if km and kills > 0:
-        root = ET.parse(HERE / "livery" / "kill.svg").getroot()
+        root = ET.parse(opts["art"] / "kill.svg").getroot()
         shape = next((el for el in root.iter() if el.get("id") == "kill"), None)
         if shape is None:
-            raise SystemExit("livery/kill.svg: no element with id kill")
+            raise SystemExit(f"{opts['art'] / 'kill.svg'}: no element with id kill")
         shape = flatten_path(shape.get("d"))
         smin, smax = shape.min(0), shape.max(0)
         h = float(km["height"])
@@ -486,7 +490,7 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
 
     fb = cfg.get("fin_badge")
     if fb:
-        ins = load_insignia(HERE / "livery" / "insignia.svg")
+        ins = load_insignia(opts["art"] / "insignia.svg")
         smin, smax = ins["shield"].min(0), ins["shield"].max(0)
         scale = float(fb["height"]) / (smax[1] - smin[1])
         mid = (smin + smax) / 2
@@ -673,21 +677,27 @@ def install(src, name):
 
 
 def main():
-    p = argparse.ArgumentParser(prog="livery.py", description="Generate the 0OPS livery for one jet.")
+    p = argparse.ArgumentParser(prog="livery.py", description="Generate a livery model (default: the Dragon Crew skin) for one jet.")
     p.add_argument("jet", help="jet name: warthunder/jets/<jet>.json and warthunder/templates/<jet>/")
-    p.add_argument("--name", help="skin folder name; default 0OPS_<jet>, or 0OPS_<jet>_lead with --lead")
+    p.add_argument("--livery", default="dragon-crew", help="livery model: warthunder/liveries/<livery>/")
+    p.add_argument("--name", help="skin folder name; default the style's skin_name with <jet> filled in, plus _lead with --lead")
     p.add_argument("--kills", type=int, help="number of kill marks under the canopy; default: kill_marks count in the jet file")
     p.add_argument("--lead", action="store_true", help="add the flight lead band on the fin")
-    p.add_argument("--style", default=str(HERE / "livery" / "style.json"))
+    p.add_argument("--style", help="style file; default warthunder/liveries/<livery>/style.json")
     p.add_argument("--out", default=str(HERE / "out" / "skins"), help="parent folder for the skin")
     p.add_argument("--install", action="store_true", help="also copy the skin to War Thunder's UserSkins")
     a = p.parse_args()
-    name = a.name or (f"0OPS_{a.jet}_lead" if a.lead else f"0OPS_{a.jet}")
+    art = HERE / "liveries" / a.livery
+    if not art.is_dir():
+        raise SystemExit(f"no livery model at {art}")
+    style_path = Path(a.style) if a.style else art / "style.json"
+    style = json.loads(style_path.read_text(encoding="utf-8"))
+    name = a.name or style.get("skin_name", "{jet}").replace("{jet}", a.jet) + ("_lead" if a.lead else "")
     if name.lower().startswith("template_"):
         raise SystemExit("the skin name must not start with template_")
     cfg = json.loads((HERE / "jets" / f"{a.jet}.json").read_text(encoding="utf-8"))
     kills = a.kills if a.kills is not None else int(cfg.get("kill_marks", {}).get("count", 0))
-    dest = build(a.jet, name, a.style, Path(a.out).resolve(), {"kills": kills, "lead": a.lead})
+    dest = build(a.jet, name, style_path, Path(a.out).resolve(), {"kills": kills, "lead": a.lead, "art": art})
     if a.install:
         install(dest, name)
 
