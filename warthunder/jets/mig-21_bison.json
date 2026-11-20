@@ -7,8 +7,10 @@
     {"what": "wingtips", "tip": 3.58, "width": 0.3, "x": [-2.7, 2.2], "z": [-0.4, 0.1]}
   ],
   "emblems": [
-    {"what": "dragon", "svg": "dragon", "center": [-0.31, 0.0], "length": 3.52, "surfaces": ["top", "bottom"], "min_facing": 0.5, "bands": [[0, 0.24], [0.8, 9]]}
+    {"what": "dragon", "svg": "dragon", "center": [0.65, 0.0], "length": 4.7, "surfaces": ["top"], "min_facing": 0.93, "bands": [[0, 0.14], [0.58, 9]]}
   ],
+  "lettering": {"text": "0OPS", "slashed_zero": true, "center": [3.6, 0.2], "height": 0.14, "max_offset": 0.7},
+  "kill_marks": {"count": 5, "start": [3.9, 0.38], "height": 0.09, "gap": 0.03, "max_offset": 0.7},
   "lead_band": {"z": [2.06, 2.14], "x": [-7.0, -3.5], "max_offset": 0.3},
   "keep": [
     {"what": "main wheels", "min": [0.2, -0.6, -0.5], "max": [1.0, 0.6, 0.3]},

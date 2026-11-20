@@ -396,7 +396,17 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
         for side, sign in (("top", 1.0), ("bottom", -1.0)):
             if side not in em.get("surfaces", ["top"]):
                 continue
-            sel = np.nonzero(near & (face_z * sign > float(em.get("min_facing", 0.2))) & (nrm[:, 2] * sign > 0))[0]
+            cand = np.nonzero(near)[0]
+            if not len(cand):
+                continue
+            cell = float(em.get("cell", 0.02))
+            _, inv = np.unique(np.floor(pos[cand, :2] / cell).astype(np.int64), axis=0, return_inverse=True)
+            inv = inv.ravel()
+            zs = pos[cand, 2] * sign
+            zmax = np.full(inv.max() + 1, -np.inf, dtype=np.float32)
+            np.maximum.at(zmax, inv, zs)
+            front = zs >= zmax[inv] - float(em.get("depth_tol", 0.03))
+            sel = cand[front & (face_z[cand] * sign > float(em.get("min_facing", 0.2))) & (nrm[cand, 2] * sign > 0)]
             if not len(sel):
                 continue
             p = np.stack([mid[0] - sign * (pos[sel, 1] - cy) / scale, mid[1] - (pos[sel, 0] - cx) / scale], 1)
