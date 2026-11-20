@@ -226,9 +226,12 @@ def load_insignia(path):
             raise SystemExit(f"{path}: no element with id {need}")
     shield = flatten_path(found["shield"].get("d"))
     z = found["zero"]
-    cx, cy, rx, ry = (float(z.get(k)) for k in ("cx", "cy", "rx", "ry"))
-    a = np.linspace(0, 2 * np.pi, 241)[:-1]
-    zero = np.stack([cx + rx * np.cos(a), cy + ry * np.sin(a)], 1)
+    if z.get("d"):
+        zero = flatten_path(z.get("d"))
+    else:
+        cx, cy, rx, ry = (float(z.get(k)) for k in ("cx", "cy", "rx", "ry"))
+        a = np.linspace(0, 2 * np.pi, 241)[:-1]
+        zero = np.stack([cx + rx * np.cos(a), cy + ry * np.sin(a)], 1)
     s = found["slash"]
     slash = np.array([[float(s.get("x1")), float(s.get("y1"))], [float(s.get("x2")), float(s.get("y2"))]])
     return {
@@ -238,6 +241,14 @@ def load_insignia(path):
         "slash": slash,
         "slash_w": float(s.get("stroke-width")),
     }
+
+
+def load_shape(path, el_id):
+    root = ET.parse(path).getroot()
+    el = next((e for e in root.iter() if e.get("id") == el_id), None)
+    if el is None:
+        raise SystemExit(f"{path}: no element with id {el_id}")
+    return flatten_path(el.get("d"))
 
 
 def seg_dist(p, a, b):
@@ -254,6 +265,10 @@ def poly_sdf(p, poly):
     cond = ((a[:, 1] > y) != (b[:, 1] > y)) & (x < (b[:, 0] - a[:, 0]) * (y - a[:, 1]) / (b[:, 1] - a[:, 1] + 1e-12) + a[:, 0])
     inside = (cond.sum(1) % 2) == 1
     return np.where(inside, -d, d)
+
+
+def poly_sdf_chunked(p, poly, chunk=200_000):
+    return np.concatenate([poly_sdf(p[i:i + chunk], poly) for i in range(0, len(p), chunk)]) if len(p) else np.zeros(0)
 
 
 def badge_alpha(p, px_size, ins, outline):
@@ -361,6 +376,34 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
         detail_w *= 1 - a
         if (a > 0.5).any():
             log(f"{label}: {wt.get('what', 'wingtips')}, {int((a > 0.5).sum())} fragments white from |y| {edge:.3f} m out")
+
+    if cfg.get("emblems"):
+        fn = np.cross(P[:, 1] - P[:, 0], P[:, 2] - P[:, 0])
+        fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
+        fn *= np.where((fn * N.sum(1)).sum(1) < 0, -1.0, 1.0)[:, None]
+        face_z = fn[tri, 2].astype(np.float32)
+    for em in cfg.get("emblems", []):
+        shape = load_shape(HERE / "livery" / f"{em['svg']}.svg", "emblem")
+        smin, smax = shape.min(0), shape.max(0)
+        scale = float(em["length"]) / (smax[1] - smin[1])
+        mid = (smin + smax) / 2
+        cx, cy = em["center"]
+        near = (np.abs(pos[:, 0] - cx) <= (smax[1] - smin[1]) / 2 * scale + 0.02) & (np.abs(pos[:, 1] - cy) <= (smax[0] - smin[0]) / 2 * scale + 0.02)
+        if em.get("bands"):
+            off = np.abs(pos[:, 1] - cy)
+            near &= np.any([(off >= lo_b) & (off <= hi_b) for lo_b, hi_b in em["bands"]], axis=0)
+        tint = hex_rgb(style[em.get("color", "white")])
+        for side, sign in (("top", 1.0), ("bottom", -1.0)):
+            if side not in em.get("surfaces", ["top"]):
+                continue
+            sel = np.nonzero(near & (face_z * sign > float(em.get("min_facing", 0.2))) & (nrm[:, 2] * sign > 0))[0]
+            if not len(sel):
+                continue
+            p = np.stack([mid[0] - sign * (pos[sel, 1] - cy) / scale, mid[1] - (pos[sel, 0] - cx) / scale], 1)
+            a = np.clip(0.5 - poly_sdf_chunked(p, shape) / (tsz[sel] / scale), 0, 1)
+            col[sel] = col[sel] + (tint - col[sel]) * a[:, None]
+            detail_w[sel] *= 1 - a
+            log(f"{label}: {em.get('what', em['svg'])} {side}, {int((a > 0.5).sum())} fragments")
 
     accent = hex_rgb(style.get("accent", style["white"]))
     for box in cfg.get("accents", []):
@@ -492,6 +535,25 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
     return out
 
 
+def skin_normal(model_dir, normal_png, size, style):
+    n = np.asarray(Image.open(model_dir / normal_png).convert("RGB"))
+    mr_path = model_dir / normal_png.replace("_normal.png", "_metal_rough.png")
+    mr = np.asarray(Image.open(mr_path).convert("RGB")) if mr_path.exists() else None
+    chans = [
+        255 - mr[..., 1] if mr is not None else np.zeros(n.shape[:2], np.uint8),
+        255 - n[..., 1],
+        mr[..., 2] if mr is not None else np.zeros(n.shape[:2], np.uint8),
+        n[..., 0],
+    ]
+    for i, key in ((0, "smoothness"), (2, "metalness")):
+        if style.get(key) is not None:
+            chans[i] = np.full(n.shape[:2], int(round(float(style[key]) * 255)), np.uint8)
+        elif style.get(f"{key}_scale") is not None:
+            chans[i] = np.clip(np.rint(chans[i] * float(style[f"{key}_scale"])), 0, 255).astype(np.uint8)
+    out = [np.asarray(Image.fromarray(np.ascontiguousarray(c)).resize(size, Image.BILINEAR)) for c in chans]
+    return np.stack(out, -1)
+
+
 def save_like(rgba, mode, path):
     img = Image.fromarray(rgba)
     if mode != "RGBA":
@@ -536,7 +598,7 @@ def build(jet, name, style_path, out_root, opts):
         if isinstance(part, str):
             stem = part.lower()
             sources = [(model_dir, gltf)]
-            part_cfg = cfg
+            part_cfg = {k: v for k, v in cfg.items() if k != "emblems"}
         else:
             stem = part["name"].lower()
             models = part["model"] if isinstance(part["model"], list) else [part["model"]]
@@ -565,7 +627,12 @@ def build(jet, name, style_path, out_root, opts):
         save_like(out, "RGBA", dest / f"{stem}.tga")
         extra.append(f'replace_tex{{\n  from:t="{stem}_c*"\n  to:t="{stem}.tga"\n}}\n')
 
-    shutil.copyfile(normal_path, dest / normal_path.name)
+    if normal_png and (model_dir / normal_png).exists():
+        nimg = Image.open(normal_path)
+        save_like(skin_normal(model_dir, normal_png, nimg.size, style), nimg.mode, dest / normal_path.name)
+        log(f"{normal_path.name}: game normal map at {nimg.size[0]}x{nimg.size[1]}")
+    else:
+        shutil.copyfile(normal_path, dest / normal_path.name)
     text = blk.read_text(encoding="utf-8", errors="replace")
     if extra:
         text = text.rstrip("\n") + "\n\n" + "\n".join(extra)
@@ -580,7 +647,16 @@ def install(src, name):
     if not USER_SKINS.exists():
         raise SystemExit(f"no UserSkins folder at {USER_SKINS}")
     dest = USER_SKINS / name
+    same = [d for d in USER_SKINS.iterdir() if d.name.lower() == name.lower()]
+    if same and same[0].name != name:
+        tmp = USER_SKINS / f"{name}.rename"
+        same[0].rename(tmp)
+        tmp.rename(dest)
     dest.mkdir(exist_ok=True)
+    keep = {f.name.lower() for f in src.iterdir()}
+    for f in dest.iterdir():
+        if f.is_file() and f.suffix.lower() in (".tga", ".blk", ".dds") and f.name.lower() not in keep:
+            f.unlink()
     for f in src.iterdir():
         shutil.copyfile(f, dest / f.name)
     log(f"installed to {dest}")
@@ -589,14 +665,14 @@ def install(src, name):
 def main():
     p = argparse.ArgumentParser(prog="livery.py", description="Generate the 0OPS livery for one jet.")
     p.add_argument("jet", help="jet name: warthunder/jets/<jet>.json and warthunder/templates/<jet>/")
-    p.add_argument("--name", help="skin folder name; default 0ops_<jet>, or 0ops_<jet>_lead with --lead")
+    p.add_argument("--name", help="skin folder name; default 0OPS_<jet>, or 0OPS_<jet>_lead with --lead")
     p.add_argument("--kills", type=int, help="number of kill marks under the canopy; default: kill_marks count in the jet file")
     p.add_argument("--lead", action="store_true", help="add the flight lead band on the fin")
     p.add_argument("--style", default=str(HERE / "livery" / "style.json"))
     p.add_argument("--out", default=str(HERE / "out" / "skins"), help="parent folder for the skin")
     p.add_argument("--install", action="store_true", help="also copy the skin to War Thunder's UserSkins")
     a = p.parse_args()
-    name = a.name or (f"0ops_{a.jet}_lead" if a.lead else f"0ops_{a.jet}")
+    name = a.name or (f"0OPS_{a.jet}_lead" if a.lead else f"0OPS_{a.jet}")
     if name.lower().startswith("template_"):
         raise SystemExit("the skin name must not start with template_")
     cfg = json.loads((HERE / "jets" / f"{a.jet}.json").read_text(encoding="utf-8"))

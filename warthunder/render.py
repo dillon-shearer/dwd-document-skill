@@ -19,6 +19,14 @@ VIEWS = [
     ("rear_three_quarter", (-1.0, -1.1, 0.55), (0, 0, 1), False),
 ]
 
+CLOSE = [
+    ("close_fin_left", (-4.7, 0.0, 1.5), (0.15, -1.0, 0.12), 4.2),
+    ("close_fin_right", (-4.7, 0.0, 1.5), (0.15, 1.0, 0.12), 4.2),
+    ("close_nose", (4.2, 0.0, 0.2), (0.9, -1.0, 0.45), 6.5),
+    ("close_wing", (-0.4, -2.0, 0.0), (-0.25, -0.55, 1.0), 6.0),
+    ("close_rear", (-3.8, 0.0, 0.6), (-1.0, -0.8, 0.5), 6.5),
+]
+
 DEFAULT_HIDE = "apu_,aku_,su_apu_,gunfire,jet_flame"
 
 
@@ -35,6 +43,8 @@ def parse_args():
     p.add_argument("--width", type=int, default=1600)
     p.add_argument("--height", type=int, default=1000)
     p.add_argument("--samples", type=int, default=32)
+    p.add_argument("--close", action="store_true", help="also render close-up views of the fin, nose, wing and rear")
+    p.add_argument("--sheet", action="store_true", help="also write contact_sheet.png with every view at half size")
     args = p.parse_args(argv)
     if bool(args.color) == bool(args.skin):
         p.error("give either --color or --skin")
@@ -219,7 +229,7 @@ def camera_matrix(forward, up, location):
     return m
 
 
-def render_views(scene, meshes, out_dir):
+def render_views(scene, meshes, out_dir, close=False):
     lo, hi, pts = bounds(meshes)
     center = (lo + hi) / 2
     radius = max((p - center).length for p in pts)
@@ -257,7 +267,43 @@ def render_views(scene, meshes, out_dir):
         bpy.ops.render.render(write_still=True)
         written.append(path)
         print(f"wrote {path}")
+    for name, target, d, dist in CLOSE if close else []:
+        cam_data.type = "PERSP"
+        cam_data.lens = 50
+        look = -Vector(d).normalized()
+        cam.matrix_world = camera_matrix(look, (0, 0, 1), Vector(target) - look * dist)
+        path = out_dir / f"{name}.png"
+        scene.render.filepath = str(path)
+        bpy.ops.render.render(write_still=True)
+        written.append(path)
+        print(f"wrote {path}")
     return written
+
+
+def contact_sheet(paths, out_path, cols=4):
+    tiles = []
+    for path in paths:
+        img = bpy.data.images.load(str(path), check_existing=False)
+        w, h = img.size
+        px = np.empty(w * h * 4, dtype=np.float32)
+        img.pixels.foreach_get(px)
+        bpy.data.images.remove(img)
+        a = px.reshape(h, w, 4)[::-1]
+        a = a[: h // 2 * 2, : w // 2 * 2].reshape(h // 2, 2, w // 2, 2, 4).mean((1, 3))
+        tiles.append(a)
+    th, tw = tiles[0].shape[:2]
+    rows = (len(tiles) + cols - 1) // cols
+    sheet = np.full((rows * th, cols * tw, 4), 0.16, dtype=np.float32)
+    sheet[..., 3] = 1.0
+    for i, t in enumerate(tiles):
+        r, c = divmod(i, cols)
+        sheet[r * th:(r + 1) * th, c * tw:(c + 1) * tw] = t
+    out = bpy.data.images.new("contact_sheet", cols * tw, rows * th, alpha=False)
+    out.pixels.foreach_set(sheet[::-1].ravel())
+    out.filepath_raw = str(out_path)
+    out.file_format = "PNG"
+    out.save()
+    print(f"wrote {out_path}")
 
 
 def main():
@@ -289,7 +335,9 @@ def main():
     scene.render.image_settings.color_mode = "RGB"
     scene.view_settings.view_transform = "Standard"
     scene.view_settings.look = "None"
-    written = render_views(scene, meshes, out_dir)
+    written = render_views(scene, meshes, out_dir, args.close)
+    if args.sheet:
+        contact_sheet(written, out_dir / "contact_sheet.png")
     print(f"done: {len(written)} renders in {out_dir}")
 
 

@@ -12,7 +12,7 @@ output and are in `.gitignore`.
 | `render.py` | Blender script: mesh + skin textures in, 7 PNG renders out |
 | `uvgrid.py` | Writes a numbered, colored UV test grid to use as a skin texture |
 | `livery.py` | Generates the 0OPS livery for one jet (see below) |
-| `livery/style.json`, `livery/insignia.svg` | The livery's shared colors and the unit shield |
+| `livery/style.json`, `livery/insignia.svg`, `livery/dragon.svg` | The livery's shared colors and finish, the unit shield and the top-view dragon |
 | `jets/<jet>.json` | Per-jet placement for the livery |
 | `tools/wt-unpack/bin/` | The extractor, installed by cargo (not committed) |
 | `models/<model>/` | Extracted glTF with UVs and the game's own textures as PNG (not committed) |
@@ -60,6 +60,8 @@ About a minute. Writes `warthunder/models/mig_21_bison/mig_21_bison.gltf` (LOD 0
 
 Writes `left`, `right`, `top`, `bottom`, `front`, `front_three_quarter` and `rear_three_quarter` PNGs
 (1600x1000, Cycles on the CPU, mid-grey background, neutral light). Takes about a minute. Exits 1 on any error.
+In this studio light any dielectric black reflects about 4% of the white dome, so near-black paint renders as
+dark grey (about 50 of 255). That is the light, not the texture.
 `--python-exit-code 1` must come before `--python`, or Blender exits 0 when the script fails.
 
 Options:
@@ -72,6 +74,8 @@ Options:
 | `--prefix` | Texture prefix, e.g. `mig_21_bison`. Default: the color file name, minus a trailing `_c` |
 | `--hide` | Comma-separated texture name prefixes whose faces are removed. Default `apu_,aku_,su_apu_,gunfire,jet_flame` (missile and rocket launchers, muzzle flash, afterburner flame) |
 | `--width`, `--height`, `--samples` | Render size and Cycles samples (default 1600, 1000, 32) |
+| `--close` | Also render five close-ups: both fin sides, nose, wing top, rear (`close_*.png`). Positions are in Bison meters |
+| `--sheet` | Also write `contact_sheet.png`, every view at half size, four per row |
 
 If no material uses `<prefix>_c`, the script stops and lists the textures the mesh does use.
 
@@ -124,12 +128,13 @@ Dagor-Asset-Explorer, grp-blender-toolkit) were not tried.
 
 ## 0OPS livery
 
-The 0OPS squadron livery, generated per jet: solid near-black (`#101113`) with the panel lines of the
-game texture, a unit shield (white slashed zero) on each side of the fin, white wingtips and tailplane tips,
-white nose cone, pitot boom and fin tip, a darker anti-glare panel ahead of the windscreen, "0OPS" (slashed
-zero) under the canopy with kill marks above it, and the drop tanks, missiles and rockets in black with
-white noses. The design went through several rounds with the operator in game; the colors live in
-`livery/style.json` and the placements in `jets/<jet>.json`.
+The 0OPS squadron livery, generated per jet: black (`#0a0a0b`) with a ghost splinter of large angular
+panels one shade lighter (`#17191c`), satin finish, the game's own panel lines and rivets. White (`#f0f0f0`)
+only for: a small unit shield on each side of the fin (slashed zero in a DIN-style stadium, black field, thin
+outline), thin wingtips on both wings, and a top-view dragon (body on the spine, wings across both wings, top
+and underside). No numbers, lettering, stencils or other color. Stores and pylons get the same black and
+splinter. The colors and finish live in `livery/style.json` and the placements in `jets/<jet>.json`. The
+Bison was finished by render rounds; `out/rounds/<n>/note.txt` says what each round changed.
 
 Generate the Bison skin (under a minute, exits 0):
 
@@ -137,14 +142,20 @@ Generate the Bison skin (under a minute, exits 0):
 python warthunder/livery.py mig-21_bison
 ```
 
-Writes `warthunder/out/skins/0ops_mig-21_bison/`: `mig_21_bison.tga` (same size and bit depth as the
-template), `mig_21_bison_n.tga` (the template's, copied byte for byte), `mig-21_bison.blk`, and one TGA per
-extra part and store (see `parts` below). Needs Python 3 with numpy, scipy and Pillow.
+Writes `warthunder/out/skins/0OPS_mig-21_bison/`: `mig_21_bison.tga` (same size and bit depth as the
+template), `mig_21_bison_n.tga`, `mig-21_bison.blk`, and one TGA per extra part and store (see `parts`
+below). The output is deterministic: the same inputs give the same file hash. Needs Python 3 with numpy, scipy
+and Pillow.
+
+The normal TGA is the game's own normal map (from `models/<model>/<prefix>_n_normal.png` and
+`_n_metal_rough.png`, put back into Dagor's packed layout at the template size), with smoothness and
+metalness from the style. The template's own normal map is flat, and shipping it would erase the panel lines
+in game.
 
 | Option | Meaning |
 |---|---|
-| `--install` | Also copy the folder to `UserSkins\<name>`. Names starting with `template_` are refused, so the game's template folders are never touched |
-| `--name` | Skin folder name. Default `0ops_<jet>`, or `0ops_<jet>_lead` with `--lead` |
+| `--install` | Also copy the folder to `UserSkins\<name>`. Names starting with `template_` are refused, so the game's template folders are never touched. A folder with the same name in another case is renamed to `<name>`; old `.tga`, `.blk` and `.dds` files the new skin does not have are removed from it |
+| `--name` | Skin folder name. Default `0OPS_<jet>`, or `0OPS_<jet>_lead` with `--lead` |
 | `--kills N` | Number of kill marks. Default: `kill_marks.count` in the jet file |
 | `--lead` | Add the flight lead band across the fin |
 | `--style`, `--out` | Another style file, another parent folder for the skin |
@@ -153,7 +164,7 @@ Render it (`-t 4` keeps Blender to four CPU threads so the PC stays usable; the 
 launch rails out, `--hide gunfire,jet_flame` shows them):
 
 ```sh
-"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b -t 4 --python-exit-code 1 --python warthunder/render.py -- --mesh warthunder/models/mig_21_bison/mig_21_bison.gltf --skin warthunder/out/skins/0ops_mig-21_bison --out warthunder/out/renders/0ops_mig-21_bison
+"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b -t 4 --python-exit-code 1 --python warthunder/render.py -- --mesh warthunder/models/mig_21_bison/mig_21_bison.gltf --skin warthunder/out/skins/0OPS_mig-21_bison --out warthunder/out/final --close --sheet
 ```
 
 The same `--skin` folder renders a store, e.g. `--mesh warthunder/models/su_490l_drop_tank/su_490l_drop_tank.gltf`;
@@ -174,14 +185,22 @@ Store models have their own space, nose at +X.
   darkens). Weathering comes from the template color if it has any detail, else from the game color texture
   with its roundels, flags and stencils masked out (`weathering`). The Bison template is one flat grey, so
   the game textures carry all the detail.
-- Splinter: 3D Voronoi cells in two shades, `splinter` vs `base`. Set to the same color it is off; that is
-  the current look. The operator tried a two-tone splinter in game and dropped it.
+- Splinter: 3D Voronoi cells in two shades, `splinter` vs `base`. Cell walls are planes, so edges are
+  straight and hard, and with `mirror` the pattern matches across the centerline. Set both to the same color
+  to turn it off.
 - Fin badge: `livery/insignia.svg` (elements `shield`, `zero`, `slash`; path commands M L H V C Q Z only),
   projected along Y onto each fin side and drawn from its outline, so edges are sharp at any texture size.
   Each side is drawn as seen from that side, so the slash runs lower left to upper right on both.
 - Wingtips: white where the distance from the centerline is beyond `tip - width`, inside the `x` and `z`
   ranges: a straight chordwise cut, same width both sides, top and bottom. One entry per surface (wings,
   tailplanes).
+- Emblems: a shape from `livery/<svg>.svg` (element `emblem`, path commands as for the badge), seen from
+  above with the nose up, projected along Z onto the top and/or bottom. Only faces whose geometric normal
+  points up (or down) by more than `min_facing` take it, so nothing runs down the fuselage sides. `bands`
+  limits it to distances from the centerline: on the Bison the spine (0 to 0.24 m) and the wings (beyond
+  0.8 m), with a clean break over the curved fuselage shoulders, which would otherwise catch slivers. Keep
+  emblems mirror-symmetric: parts of the Bison share mirrored UVs. Emblems are drawn on the main texture
+  only, not on parts.
 - Accents: boxes in model space painted `accent` (or the style color named by `color`, e.g. the
   anti-glare panel). With `whole`, only parts (glTF primitives) that sit fully inside the box are painted.
 - Lettering: drawn with `font` (Bahnschrift SemiBold), slashed zero optional, projected along Y like the
@@ -199,7 +218,12 @@ Store models have their own space, nose at +X.
 
 `livery/style.json` (shared): `base`, `splinter`, `white`, `accent`, `antiglare`, `badge_fill` (hex colors),
 `badge_outline` (shield outline width in insignia units, drawn inside the shield edge), `panel_lines`
-(0-255 levels added on the strongest line; negative darkens), `weathering` (0-1), `font`.
+(0-255 levels added on the strongest line; negative darkens, positive lightens the seams so they read on
+black), `weathering` (0-1), `font`, and the finish written to the normal TGA: `smoothness` or
+`smoothness_scale` (a fixed 0-1 value, or a factor on the game's own smoothness map, which keeps its
+variation), `metalness` or `metalness_scale` (same). Without them the game's values are used.
+
+`livery/insignia.svg`: `zero` may be an `ellipse` or a closed `path` (the stadium zero is a path).
 
 `jets/<jet>.json` (the only per-jet work):
 
@@ -208,13 +232,14 @@ Store models have their own space, nose at +X.
 | `model`, `prefix` | `models/<model>/<model>.gltf`, and the texture prefix from the template `.blk` |
 | `splinter` | `cell` size in m (X, Y, Z), `seed`, `mirror` (pattern mirrored across the centerline, needed when small parts share mirrored UVs), `share` of cells in `base` |
 | `fin_badge` | `center` [X, Z] of the badge on the fin, `height` in m, `max_offset` (how far from Y 0 the fin skin may be) |
+| `emblems` | List of `svg` (file name in `livery/`), `center` [X, Y] of the shape's box, `length` (nose to tail, m), `surfaces` (`top`, `bottom`), `min_facing` (default 0.2), optional `bands` and `color` |
 | `wingtips` | List of `tip` (distance of the tip from the centerline), `width`, `x` and `z` ranges that hold the surface |
 | `accents` | List of boxes (`min`, `max`), optional `whole` and `color` |
 | `lettering` | `text`, `slashed_zero`, `center` [X, Z], `height` (letter height in m), `max_offset` |
 | `kill_marks` | `count`, `start` [X, Z] (front of the row), `height`, `gap`, `max_offset` |
 | `lead_band` | `z` and `x` ranges of the fin band, `max_offset` |
 | `keep` | Boxes; parts fully inside stay as the template has them |
-| `parts` | Texture names (without `_c`) on the jet mesh, or `{name, model, nose}` for a store: `model` is one extracted model or a list sharing the texture, `nose` paints the front that many meters `accent` |
+| `parts` | Texture names (without `_c`) on the jet mesh, or `{name, model, nose}` for a store: `model` is one extracted model or a list sharing the texture, `nose` (optional) paints the front that many meters `accent`. The Bison's stores have no `nose`: plain black |
 
 ### Stores
 
@@ -239,3 +264,31 @@ and `su_s_24_rocket`.
    lettering where the uvgrid labels read correctly on both sides.
 4. List the jet's other airframe textures and stores under `parts` (PNG names in `models/<model>/`).
 5. Run `livery.py`, render with `--skin`, look, adjust.
+
+## Apply to a new jet
+
+The whole 0OPS look is shared; a new jet needs only its placement file. Commands run from the repo root in
+Git Bash; `<jet>` is the template name (e.g. `f-5e`), `<model>` the mesh name.
+
+1. Get the template in game: open the jet in War Thunder, Customization, and make a user skin template.
+   The game writes `UserSkins/template_<jet>/`. Copy it and leave the original alone:
+   ```sh
+   mkdir -p warthunder/templates/<jet>
+   cp "C:/Program Files (x86)/Steam/steamapps/common/War Thunder/UserSkins/template_<jet>/"* warthunder/templates/<jet>/
+   ```
+2. Extract the mesh (pack and model name as in "Another jet" above), plus any stores it carries:
+   ```sh
+   warthunder/tools/wt-unpack/bin/wt-unpack.exe model "C:/Program Files (x86)/Steam/steamapps/common/War Thunder/content/base/res/aircrafts/<pack>.grp" <model> --game "C:/Program Files (x86)/Steam/steamapps/common/War Thunder" -o warthunder/models/<model>
+   ```
+3. Write the placement file `warthunder/jets/<jet>.json`, starting from `jets/mig-21_bison.json`: set
+   `model` and `prefix`, the fin badge `center` and `height`, the wingtip `tip` and `x`/`z` ranges, the
+   dragon `center`, `length` and `bands` (spine half-width, wing root distance), `keep` boxes for wheels and
+   nozzle, and `parts` (other airframe textures and stores). Render the UV grid first to find the numbers
+   (see "Proof renders"). Any text a jet needs uses `lettering` in Bahnschrift.
+4. Run the command, render, look, adjust the placement, repeat; then install:
+   ```sh
+   python warthunder/livery.py <jet>
+   "C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b --python-exit-code 1 --python warthunder/render.py -- --mesh warthunder/models/<model>/<model>.gltf --skin warthunder/out/skins/0OPS_<jet> --out warthunder/out/renders/<jet> --sheet
+   python warthunder/livery.py <jet> --install
+   ```
+   In game: open the jet, Customization, pick the user skin `0OPS_<jet>`.

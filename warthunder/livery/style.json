@@ -1,12 +1,14 @@
 {
-  "base": "#101113",
-  "splinter": "#101113",
+  "base": "#0a0a0b",
+  "splinter": "#17191c",
   "white": "#f0f0f0",
   "accent": "#f0f0f0",
   "antiglare": "#08090a",
-  "badge_fill": "#101113",
-  "badge_outline": 3.0,
-  "panel_lines": -6,
+  "badge_fill": "#0a0a0b",
+  "badge_outline": 3.5,
+  "panel_lines": 5,
   "weathering": 0.12,
-  "font": "Bahnschrift"
+  "font": "Bahnschrift",
+  "metalness": 0.0,
+  "smoothness_scale": 0.6
 }
