@@ -125,7 +125,7 @@ Dagor-Asset-Explorer, grp-blender-toolkit) were not tried.
 
 ## Skin texture format
 
-- Color (`<prefix>.tga`): RGBA TGA at the template's size (4096x4096 for the Bison). TGA origin
+- Color (`<prefix>.tga`): RGBA TGA at the template's size (4096x4096 for the Bison), or the jet file's `size`. TGA origin
   (top or bottom) does not matter; Blender reads both.
 - Normal (`<prefix>_n.tga`): Dagor's packed layout. R is smoothness, G is the normal's Y (DirectX, green
   down), B is metalness, A is the normal's X. render.py turns it into a normal map and a roughness/metal
@@ -241,15 +241,16 @@ variation), `metalness` or `metalness_scale` (same). Without them the game's val
 |---|---|
 | `model`, `prefix` | `models/<model>/<model>.gltf`, and the texture prefix from the template `.blk` |
 | `splinter` | `cell` size in m (X, Y, Z), `seed`, `mirror` (pattern mirrored across the centerline, needed when small parts share mirrored UVs), `share` of cells in `base` |
-| `fin_badge` | `center` [X, Z] of the badge on the fin, `height` in m, `max_offset` (how far from Y 0 the fin skin may be) |
+| `size` | Optional [W, H]: build the color and normal TGAs at this size instead of the template's. Use it when the game wrote the template at a low resolution (the Su-30MKK template is 64x64); the game's own texture is then the base. The skin is never built smaller than the game's own `<prefix>_c` texture |
+| `fin_badge` | `center` [X, Z] of the badge on the fin, `height` in m, `max_offset` (how far from the fin the fin skin may be), optional `y` (the fin's distance from the centerline on a twin-fin jet; the badge then goes on the outer face of each fin only) |
 | `emblems` | List of `svg` (file name in the livery folder), `center` [X, Y] of the shape's box, `length` (nose to tail, m), `surfaces` (`top`, `bottom`), `min_facing` (default 0.2), optional `bands`, `cell`, `depth_tol` and `color` |
 | `wingtips` | List of `tip` (distance of the tip from the centerline), `width`, `x` and `z` ranges that hold the surface |
 | `accents` | List of boxes (`min`, `max`), optional `whole` and `color` |
 | `lettering` | `text`, `slashed_zero`, `center` [X, Z], `height` (letter height in m), `max_offset` |
 | `kill_marks` | `count`, `start` [X, Z] (front of the row), `height`, `gap`, `max_offset` |
-| `lead_band` | `z` and `x` ranges of the fin band, `max_offset` |
+| `lead_band` | `z` and `x` ranges of the fin band, `max_offset`, optional `y` as for `fin_badge` (the band goes on both faces of both fins) |
 | `keep` | Boxes; parts fully inside stay as the template has them |
-| `parts` | Texture names (without `_c`) on the jet mesh, or `{name, model, nose}` for a store: `model` is one extracted model or a list sharing the texture, `nose` (optional) paints the front that many meters `accent`. The Bison's stores have no `nose`: plain black |
+| `parts` | Texture names (without `_c`) on the jet mesh, or `{name, model, nose}` for a store: `model` is one extracted model or a list sharing the texture, `nose` (optional) paints the front that many meters `accent`. The Bison's stores have no `nose`: plain black. A texture on the jet mesh given as `{name, model: <the jet's model>}` is baked plain black with no markings: use it for pylons, launchers and pods, so a wingtip or fin box cannot paint a wingtip pod or rail |
 
 ### Stores
 
@@ -263,7 +264,8 @@ warthunder/tools/wt-unpack/bin/wt-unpack.exe model "C:/Program Files (x86)/Steam
 ```
 
 The Bison uses `su_490l_drop_tank`, `su_r_73`, `su_r_27r_missile`, `su_r_27t_missile`, `su_r_77_missile`
-and `su_s_24_rocket`.
+and `su_s_24_rocket`. The Su-30MKK's stores are listed in `jets/su_30mkk.json` under `parts` (the `model`
+names); `b_13`, `b_8m` and `mbd3_u6_68` are in `content/base/res/aircrafts/air.grp`, not `aces.grp`.
 
 ### Another jet
 
@@ -310,3 +312,24 @@ checklist. Commands run from the repo root in Git Bash; `<jet>` is the template 
    python warthunder/livery.py <jet> --install
    ```
    In game: open the jet, Customization, pick the user skin `0OPS-Dragon-Crew-<jet>`.
+
+### Su-30MKK
+
+The first twin-fin jet. Template `UserSkins/template_su_30mkk/` (prefix `su_30mkk`), mesh `su_30mkk` in
+`aircrafts/air.grp`. The game wrote this template at 64x64, so the jet file sets `size` [4096, 4096]. Fin
+badge on the outer face of each fin (`fin_badge.y` 2.19). Final renders in `out/final_su_30mkk/`, rounds in
+`out/rounds_su_30mkk/<n>/`.
+
+```sh
+mkdir -p warthunder/templates/su_30mkk
+cp "C:/Program Files (x86)/Steam/steamapps/common/War Thunder/UserSkins/template_su_30mkk/"* warthunder/templates/su_30mkk/
+warthunder/tools/wt-unpack/bin/wt-unpack.exe model "C:/Program Files (x86)/Steam/steamapps/common/War Thunder/content/base/res/aircrafts/air.grp" su_30mkk --game "C:/Program Files (x86)/Steam/steamapps/common/War Thunder" -o warthunder/models/su_30mkk
+python warthunder/livery.py su_30mkk
+"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b -t 4 --python-exit-code 1 --python warthunder/render.py -- --mesh warthunder/models/su_30mkk/su_30mkk.gltf --skin warthunder/out/skins/0OPS-Dragon-Crew-su_30mkk --out warthunder/out/final_su_30mkk --sheet
+python warthunder/livery.py su_30mkk --install
+```
+
+Extract each store named under `parts` in `jets/su_30mkk.json` the same way, with the `model` command from
+"Stores" (pack `aces.grp`, except `b_13`, `b_8m` and `mbd3_u6_68` in `aircrafts/air.grp`). Generating takes
+about 4 minutes (4096 texture plus about 50 parts). `--close` close-ups are placed for the Bison, so they are
+not used here. Add `--hide gunfire,jet_flame` to the render to show the pylons and launch rails.
