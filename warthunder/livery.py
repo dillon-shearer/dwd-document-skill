@@ -325,7 +325,7 @@ def text_mask(text, font_name, height_m, texel_m, slashed_zero=False):
             cy = pad - y0 + (gy0 + gy1) / 2
             draw.line([(cx - hw, cy + 1.22 * hh), (cx + hw, cy - 1.22 * hh)], fill=255, width=max(1, int(round(hh * 0.24))))
     total = img.height / (y1 - y0)
-    rows = max(16, int(round(height_m * total / texel_m * 2)))
+    rows = max(16, min(2048, int(round(height_m * total / texel_m * 2))))
     small = img.resize((max(16, int(round(img.width * rows / img.height))), rows), Image.LANCZOS)
     return np.asarray(small, dtype=np.float32) / 255.0, img.width / img.height, total
 
@@ -440,7 +440,7 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
     band = cfg.get("lead_band")
     if band and opts.get("lead"):
         a = np.clip(0.5 + np.minimum(pos[:, 2] - band["z"][0], band["z"][1] - pos[:, 2]) / tsz, 0, 1)
-        a *= (pos[:, 0] >= band["x"][0]) & (pos[:, 0] <= band["x"][1]) & (np.abs(pos[:, 1]) <= band["max_offset"])
+        a *= (pos[:, 0] >= band["x"][0]) & (pos[:, 0] <= band["x"][1]) & (np.abs(np.abs(pos[:, 1]) - float(band.get("y", 0))) <= band["max_offset"])
         col = col + (white - col) * a[:, None]
         detail_w *= 1 - a
         if (a > 0.5).any():
@@ -498,10 +498,11 @@ def bake(label, cfg, style, mesh, bounds, tmpl, line_png, weather_img, opts):
         cx, cz = fb["center"]
         half_w = (smax[0] - smin[0]) / 2 * scale + 0.02
         half_h = (smax[1] - smin[1]) / 2 * scale + 0.02
-        near = (np.abs(pos[:, 0] - cx) <= half_w) & (np.abs(pos[:, 2] - cz) <= half_h) & (np.abs(pos[:, 1]) <= float(fb["max_offset"]))
+        near = (np.abs(pos[:, 0] - cx) <= half_w) & (np.abs(pos[:, 2] - cz) <= half_h)
         fill = hex_rgb(style.get("badge_fill", style["base"]))
         for side, sign in (("left", -1.0), ("right", 1.0)):
-            sel = np.nonzero(near & (nrm[:, 1] * sign > 0.5))[0]
+            on_fin = np.abs(pos[:, 1] - sign * float(fb.get("y", 0))) <= float(fb["max_offset"])
+            sel = np.nonzero(near & on_fin & (nrm[:, 1] * sign > 0.5))[0]
             if not len(sel):
                 continue
             s = (pos[sel, 0] - cx) * -sign
@@ -599,7 +600,18 @@ def build(jet, name, style_path, out_root, opts):
     pts = mesh[0].reshape(-1, 3)
     bounds = (pts.min(0), pts.max(0))
     game_c = model_dir / f"{prefix}_c.png"
-    if tmpl[..., :3].astype(np.float32).mean(-1).std() > 1.0:
+    game_img = Image.open(game_c) if game_c.exists() else None
+    size = tuple(int(v) for v in cfg.get("size", tmpl_img.size))
+    if game_img is not None:
+        size = (max(size[0], game_img.size[0]), max(size[1], game_img.size[1]))
+    if size != tmpl_img.size:
+        src = game_img if game_img is not None else tmpl_img
+        src.load()
+        log(f"template is {tmpl_img.size[0]}x{tmpl_img.size[1]}: building at {size[0]}x{size[1]} from {Path(src.filename).name}")
+        tmpl = np.asarray(src.convert("RGBA").resize(size, Image.BILINEAR)).copy()
+        tmpl[..., 3] = np.asarray(tmpl_img.convert("RGBA").resize(size, Image.NEAREST))[..., 3]
+        weather_img = src
+    elif tmpl[..., :3].astype(np.float32).mean(-1).std() > 1.0:
         weather_img = tmpl_img
     else:
         weather_img = Image.open(game_c) if game_c.exists() else None
@@ -645,8 +657,9 @@ def build(jet, name, style_path, out_root, opts):
 
     if normal_png and (model_dir / normal_png).exists():
         nimg = Image.open(normal_path)
-        save_like(skin_normal(model_dir, normal_png, nimg.size, style), nimg.mode, dest / normal_path.name)
-        log(f"{normal_path.name}: game normal map at {nimg.size[0]}x{nimg.size[1]}")
+        size = tuple(max(a, b, int(c)) for a, b, c in zip(nimg.size, Image.open(model_dir / normal_png).size, cfg.get("size", (0, 0))))
+        save_like(skin_normal(model_dir, normal_png, size, style), nimg.mode, dest / normal_path.name)
+        log(f"{normal_path.name}: game normal map at {size[0]}x{size[1]}")
     else:
         shutil.copyfile(normal_path, dest / normal_path.name)
     text = blk.read_text(encoding="utf-8", errors="replace")

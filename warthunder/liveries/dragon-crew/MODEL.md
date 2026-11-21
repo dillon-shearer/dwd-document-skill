@@ -32,7 +32,7 @@ change an item without the operator saying so.
 | Base | One flat black `#0a0a0b` everywhere, stores and pylons too. No second shade, no camo |
 | Colors | Black and white `#f0f0f0` only |
 | Finish | Satin; game panel lines and rivets visible |
-| Fin | One white-outlined black shield with a white slashed zero, centered on each side. Nothing else on the fin (no white fin tip) |
+| Fin | One white-outlined black shield with a white slashed zero, centered on each side. Two fins: on the outer face of each fin only. Nothing else on the fin (no white fin tip) |
 | By the pilot | "0OPS" (Bahnschrift, slashed zero) and 5 white kill marks, under the canopy, both sides |
 | Wingtips | White, both wings, top and bottom |
 | Tailplane tips | White, both tailplanes, top and bottom |
@@ -58,7 +58,7 @@ Ask the operator before changing any of them, and do not add anything that is no
 4. Fin badge: one small unit shield, centered on each side of the fin, same height on both sides,
    about 0.5 m tall on a fighter. Black shield (`badge_fill`), thin white outline (`badge_outline` 3.5),
    white slashed zero shaped like the Bahnschrift zero (a stadium), slash running lower left to upper
-   right as seen from each side. Nothing else on the fin.
+   right as seen from each side. Nothing else on the fin. Twin fins: see "Twin fins".
 5. Pilot marking, on both sides, on the fuselage just under the canopy by the pilot: "0OPS" in
    Bahnschrift with a slashed zero (letter height 0.14 m on the Bison), and a row of 5 white kill marks
    (0.09 m tall) just above it, starting a little ahead of the text and running aft. Both must read the
@@ -82,6 +82,22 @@ swept back along the wing leading edge; heavy fan or feather wings. An earlier s
 "0OPS" lettering and kill marks, the tailplane tips, the white nose cone and the white pitot on its own;
 the operator wanted all of them back. Never drop a marking the operator has not removed. A white fin tip
 and white store noses were in the first build only; the operator chose to leave both out (2026-11-20).
+
+## Twin fins
+
+The operator's rule (2026-11-20) for every jet with two fins, set on the Su-30MKK:
+
+- Anything the single fin carries on its sides (the badge) goes on the OUTER face of each fin only. The
+  inner faces stay plain black.
+- Each badge is drawn as seen from its own side, so neither is mirrored: the slash runs lower left to upper
+  right on both.
+- Same height and position on both fins.
+- A band across the fin (the `--lead` band) goes on both fins, both faces.
+
+In the jet file, `fin_badge.y` (and `lead_band.y`) is the fin's distance from the centerline, and
+`max_offset` is measured from the fin, just more than its half-thickness. livery.py then paints only faces
+near the left fin that face left and faces near the right fin that face right. Without `y` (single fin)
+the selection is the old one around Y 0.
 
 ## The dragon
 
@@ -156,13 +172,14 @@ exact commands; in short:
 
 | Marking | Jet file key | How to find the numbers |
 |---|---|---|
-| Fin badge | `fin_badge.center` [X, Z], `height`, `max_offset` | Middle of the fin's flat side area, clear of fairings, antennas and the rudder hinge. `max_offset` just more than the fin's half-thickness so nothing else catches it |
+| Fin badge | `fin_badge.center` [X, Z], `height`, `max_offset`, `y` on twin fins | Middle of the fin's flat side area, clear of fairings, antennas and the rudder hinge. `max_offset` just more than the fin's half-thickness so nothing else catches it. Twin fins: `y` is the fin's distance from the centerline (see "Twin fins") |
 | "0OPS" | `lettering.center` [X, Z], `height` | On the fuselage side under the canopy rear, where the side is flat and the UVs are not mirrored. livery.py stops with an error if the text lands on mirrored texels: move it aft |
 | Kill marks | `kill_marks.start` [X, Z], `height`, `gap`, `count` 5 | Just above "0OPS", the row starting slightly ahead of the text |
 | Nose cone, pitot | `accents[]`: `min`, `max` boxes, `whole` | Nose cone: a box around the whole radome or shock cone part with `whole` true, so only parts fully inside are painted. Pitot: a tight box around the boom |
 | Wingtips | `wingtips[]`: `tip`, `width`, `x`, `z` | `tip` is the surface's largest distance from the centerline (`fit.py` prints the mesh Y range). One entry for the wings, one for the tailplanes; the `x` and `z` box must hold only that surface |
 | Dragon | `emblems[0]`: `center` [X, 0], `length`, `bands`, `min_facing` 0.93, `surfaces` ["top"] | See "Fitting the dragon" |
-| Stores and pylons | `parts` | Every texture name in `models/<model>/` that is not the main skin, plus every store model. Missing ones keep the stock colors |
+| Stores and pylons | `parts` | Every texture name in `models/<model>/` that is not the main skin, plus every store model. Missing ones keep the stock colors. Give pylons, launchers and pods as `{name, model: <the jet's model>}` so they bake plain black (as a plain name they also take the wingtip and fin boxes) |
+| Texture size | `size` | Only when the game wrote the template smaller than 4096: set [4096, 4096] |
 | Wheels, nozzle | `keep` | Boxes around those parts |
 
 ### Fitting the dragon
@@ -190,6 +207,12 @@ to get close, then confirm with a Blender render.
 Bison values: center [-0.43, 0], length 2.46 m (head tip X 0.80, spade X -1.66, wing tips at Y +-2.31,
 0.15 m inside the delta's leading edge), bands [[0, 0.14], [0.58, 9]], min_facing 0.93.
 
+Sizing on another jet: scale every marking by the airframe length ratio to the Bison (15 m), and size the
+dragon by span so its wings cover the same share of the wingspan (about 65%). Keep the band gap the same in
+dragon units (Bison: 0.057 L to 0.236 L), so the same part of the art is masked. Su-30MKK values (length
+ratio 1.5): center [-0.7, 0], length 5.0 m, bands [[0, 0.28], [1.18, 9]], badge 0.75 m, letters 0.21 m,
+kill marks 0.135 m, wingtip 0.45 m, tailplane tip 0.3 m.
+
 F-5E FCU values: center [-1.05, 0], length 2.8 m (head tip X 0.35, spade X -2.45 ahead of the fin root,
 wing tips at Y +-2.63, about 0.3 m behind the leading edge; the deepest trailing-edge point stays about
 0.14 m ahead of the wing trailing edge), bands [[0, 0.15], [0.87, 9]]. Dragon half-span is 0.67 of the
@@ -211,6 +234,17 @@ wing half-span (Bison 0.645), so on this wider wing it is longer than on the Bis
 - Template textures: the game's template color is one flat grey and its normal map is flat. livery.py
   rebuilds the normal TGA from the game's own normal map; shipping the template's flat one erases the
   panel lines in game. The weathering comes from the game's own color texture with its markings masked.
+- Low-resolution template: the game may write the template far smaller than the skin needs (the
+  Su-30MKK template is 64x64, a blurred dump of the stock camo, not blank). livery.py never builds below the
+  game's own texture size and uses the game texture as the base then; set `size` [4096, 4096] in the jet
+  file so the markings are as crisp as on the Bison. In-game skins may be larger than the template.
+- Wingtip pods and rails: on a jet with pods or launch rails at the wingtips (Su-30MKK), a plain-name part
+  inside the wingtip box is painted white too. List pylons, launchers and pods as `{name, model}` parts on
+  the jet's own model so they stay plain black. Check the generate log: a part name followed by
+  "wingtips" or "tailplane tips" means a box caught it.
+- Gear doors in `keep`: a box around the whole landing gear also keeps the gear doors, which then show stock
+  grey on the underside. Keep only the tyres (on the Su-30MKK the main gear parts on the skin textures are
+  doors and struts, painted black; only the nose wheels are kept).
 - Parts: pylons, launchers, gun pods and stores have their own game textures, which the template does
   not cover. Each must be listed in `parts`, or it keeps the stock camo next to the black skin. The
   operator confirmed in game that stores pick up the skin this way.
