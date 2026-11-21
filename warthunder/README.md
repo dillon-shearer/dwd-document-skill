@@ -112,7 +112,8 @@ Dagor-Asset-Explorer, grp-blender-toolkit) were not tried.
    `_skeleton`, `_anim` or `_animtree` suffix.
 2. The texture prefix is in the template's `.blk`: `replace_tex{ from:t="<prefix>_c*" }`. The game makes
    templates in `UserSkins/template_<jet>/`; copy them to `warthunder/templates/<jet>/` and leave the
-   original alone.
+   original alone. The normal map's name can differ from the prefix when the game shares it between
+   versions (F-5E FCU: color `f_5e_fcu_thailand_c*`, normal `f_5e_aidc_n*`); then set `normal` in the jet file.
 3. Export with the `model` command above, then render. If the script says no material uses `<prefix>_c`,
    pass `--prefix`, using one of the names it lists.
 4. LOD 0 holds every pylon and launcher at once. Look at the PNG names in `models/<model>/` and add
@@ -240,6 +241,7 @@ variation), `metalness` or `metalness_scale` (same). Without them the game's val
 | Key | Meaning |
 |---|---|
 | `model`, `prefix` | `models/<model>/<model>.gltf`, and the texture prefix from the template `.blk` |
+| `normal` | Optional. The normal map's texture name from the template `.blk` (without `*`), when it is not `<prefix>_n`, e.g. `f_5e_aidc_n` on the F-5E FCU |
 | `splinter` | `cell` size in m (X, Y, Z), `seed`, `mirror` (pattern mirrored across the centerline, needed when small parts share mirrored UVs), `share` of cells in `base` |
 | `size` | Optional [W, H]: build the color and normal TGAs at this size instead of the template's. Use it when the game wrote the template at a low resolution (the Su-30MKK template is 64x64); the game's own texture is then the base. The skin is never built smaller than the game's own `<prefix>_c` texture |
 | `fin_badge` | `center` [X, Z] of the badge on the fin, `height` in m, `max_offset` (how far from the fin the fin skin may be), optional `y` (the fin's distance from the centerline on a twin-fin jet; the badge then goes on the outer face of each fin only) |
@@ -250,7 +252,7 @@ variation), `metalness` or `metalness_scale` (same). Without them the game's val
 | `kill_marks` | `count`, `start` [X, Z] (front of the row), `height`, `gap`, `max_offset` |
 | `lead_band` | `z` and `x` ranges of the fin band, `max_offset`, optional `y` as for `fin_badge` (the band goes on both faces of both fins) |
 | `keep` | Boxes; parts fully inside stay as the template has them |
-| `parts` | Texture names (without `_c`) on the jet mesh, or `{name, model, nose}` for a store: `model` is one extracted model or a list sharing the texture, `nose` (optional) paints the front that many meters `accent`. The Bison's stores have no `nose`: plain black. A texture on the jet mesh given as `{name, model: <the jet's model>}` is baked plain black with no markings: use it for pylons, launchers and pods, so a wingtip or fin box cannot paint a wingtip pod or rail |
+| `parts` | Texture names (without `_c`) on the jet mesh, or `{name, model, nose, tex}` for a store: `model` is one extracted model or a list sharing the texture, `nose` (optional) paints the front that many meters `accent`, `tex` (optional) is the game texture name when it does not end in `_c` (e.g. `us_750lb_m117_cone_a`; `model` may then be the jet's own model). The Bison's stores have no `nose`: plain black. A texture on the jet mesh given as `{name, model: <the jet's model>}` is baked plain black with no markings: use it for pylons, launchers and pods, so a wingtip or fin box cannot paint a wingtip pod or rail |
 
 ### Stores
 
@@ -264,8 +266,31 @@ warthunder/tools/wt-unpack/bin/wt-unpack.exe model "C:/Program Files (x86)/Steam
 ```
 
 The Bison uses `su_490l_drop_tank`, `su_r_73`, `su_r_27r_missile`, `su_r_27t_missile`, `su_r_77_missile`
-and `su_s_24_rocket`. The Su-30MKK's stores are listed in `jets/su_30mkk.json` under `parts` (the `model`
-names); `b_13`, `b_8m` and `mbd3_u6_68` are in `content/base/res/aircrafts/air.grp`, not `aces.grp`.
+and `su_s_24_rocket`. Some stores are not in `aces.grp`: if `model` says not found, look in
+`content/base/res/aircrafts/air.grp` (the F-5E's `aero_7a` and `lau_10a` rocket pods and the Su-30MKK's
+`b_13`, `b_8m` and `mbd3_u6_68` are there). The Su-30MKK's stores are listed in `jets/su_30mkk.json` under
+`parts` (the `model` names).
+
+### F-5E FCU (Thailand)
+
+The second build, `jets/f-5e_fcu_thailand.json` (template `template_f-5e_fcu_thailand`, model
+`f_5e_fcu_thailand` in `usa_f_5.grp`). Final renders in `out/final_f-5e_fcu_thailand/` (with
+`compare_top.png` next to the Bison), rounds in `out/rounds_f-5e_fcu_thailand/<n>/note.txt`.
+
+```sh
+mkdir -p warthunder/templates/f-5e_fcu_thailand
+cp "C:/Program Files (x86)/Steam/steamapps/common/War Thunder/UserSkins/template_f-5e_fcu_thailand/"* warthunder/templates/f-5e_fcu_thailand/
+WT="C:/Program Files (x86)/Steam/steamapps/common/War Thunder"
+warthunder/tools/wt-unpack/bin/wt-unpack.exe model "$WT/content/base/res/aircrafts/usa_f_5.grp" f_5e_fcu_thailand --game "$WT" -o warthunder/models/f_5e_fcu_thailand
+for m in us_aim_9p4_sidewinder python_3 us_agm_65b us_150gal_early_drop_tank us_150gal_fuse_drop_tank us_500lb_mk_82_ldgp us_500lb_mk_82_snakeye_na us_750lb_m117_cone_45 750_lb_blu_27_unfinned us_1000lb_mk_83_ldgp us_2000lb_mk_84_ldgp; do warthunder/tools/wt-unpack/bin/wt-unpack.exe model "$WT/content/base/res/aces.grp" $m --game "$WT" -o warthunder/models/$m; done
+for m in aero_7a lau_10a; do warthunder/tools/wt-unpack/bin/wt-unpack.exe model "$WT/content/base/res/aircrafts/air.grp" $m --game "$WT" -o warthunder/models/$m; done
+python warthunder/livery.py f-5e_fcu_thailand
+"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b -t 4 --python-exit-code 1 --python warthunder/render.py -- --mesh warthunder/models/f_5e_fcu_thailand/f_5e_fcu_thailand.gltf --skin warthunder/out/skins/0OPS-Dragon-Crew-f-5e_fcu_thailand --out warthunder/out/final_f-5e_fcu_thailand --sheet
+python warthunder/livery.py f-5e_fcu_thailand --install
+```
+
+Generating takes about two and a half minutes. Do not use `--close` here (its close-ups are placed for
+the Bison).
 
 ### Another jet
 

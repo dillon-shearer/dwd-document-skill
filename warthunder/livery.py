@@ -38,7 +38,8 @@ def read_blk(path):
     return pairs
 
 
-def template_files(tdir, prefix):
+def template_files(tdir, prefix, normal_tex=None):
+    normal_tex = (normal_tex or f"{prefix}_n").lower()
     blks = sorted(tdir.glob("*.blk"))
     if len(blks) != 1:
         raise SystemExit(f"expected one .blk in {tdir}, found {len(blks)}")
@@ -47,10 +48,10 @@ def template_files(tdir, prefix):
         src = src.lower().rstrip("*")
         if src == f"{prefix}_c":
             color = tdir / dst
-        elif src == f"{prefix}_n":
+        elif src == normal_tex:
             normal = tdir / dst
     if color is None or normal is None:
-        raise SystemExit(f"{blks[0]} has no replace_tex for {prefix}_c and {prefix}_n")
+        raise SystemExit(f"{blks[0]} has no replace_tex for {prefix}_c and {normal_tex}")
     for p in (color, normal):
         if not p.exists():
             raise SystemExit(f"missing template file {p}")
@@ -587,7 +588,7 @@ def build(jet, name, style_path, out_root, opts):
         raise SystemExit(f"missing mesh {gltf}; extract it first (see README)")
     if not tdir.exists():
         raise SystemExit(f"missing template folder {tdir}; copy it from UserSkins/template_{jet}")
-    blk, color_path, normal_path = template_files(tdir, prefix)
+    blk, color_path, normal_path = template_files(tdir, prefix, cfg.get("normal"))
     dest = out_root / name
     dest.mkdir(parents=True, exist_ok=True)
 
@@ -633,9 +634,10 @@ def build(jet, name, style_path, out_root, opts):
             for _, g in sources:
                 if not g.exists():
                     raise SystemExit(f"part {stem}: missing mesh {g}; extract it first (see README)")
+        tex = f"{stem}_c" if isinstance(part, str) else part.get("tex", f"{stem}_c").lower()
         meshes, part_normal = [], None
         for _, g in sources:
-            *m, n = load_mesh(g, f"{stem}_c")
+            *m, n = load_mesh(g, tex)
             meshes.append(m)
             part_normal = part_normal or n
             if not isinstance(part, str) and part.get("nose"):
@@ -643,7 +645,7 @@ def build(jet, name, style_path, out_root, opts):
                 part_cfg["accents"].append({"what": "nose", "min": [tip - float(part["nose"]), -50, -50], "max": [tip + 1, 50, 50]})
         part_mesh = [np.concatenate([m[i] for m in meshes]) for i in range(4)]
         part_dir = sources[0][0]
-        src = part_dir / f"{stem}_c.png"
+        src = part_dir / f"{tex}.png"
         if not src.exists():
             raise SystemExit(f"part {stem}: missing {src}")
         part_img = Image.open(src)
@@ -651,7 +653,7 @@ def build(jet, name, style_path, out_root, opts):
         part_line = part_dir / part_normal if part_normal else None
         out = bake(stem, part_cfg, style, part_mesh, bounds, np.asarray(part_img.convert("RGBA")), part_line, part_img, opts)
         save_like(out, "RGBA", dest / f"{stem}.tga")
-        extra.append(f'replace_tex{{\n  from:t="{stem}_c*"\n  to:t="{stem}.tga"\n}}\n')
+        extra.append(f'replace_tex{{\n  from:t="{tex}*"\n  to:t="{stem}.tga"\n}}\n')
 
     if normal_png and (model_dir / normal_png).exists():
         nimg = Image.open(normal_path)
